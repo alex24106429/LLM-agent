@@ -4,6 +4,7 @@ import config from "./config.ts";
 import { marked } from 'marked';
 import { markedTerminal } from 'marked-terminal';
 import readline from 'node:readline/promises';
+import { setTimeout } from 'node:timers/promises';
 
 const c = (code: number) => (s: string) => `\x1b[${code}m${s}\x1b[39m`;
 const [blue, gray, red, yellow] = [c(34), c(90), c(31), c(33)];
@@ -33,11 +34,40 @@ while (true) {
 
 	// Agent Reasoning Loop
 	while (true) {
-		const { choices } = await client.chat.completions.create({
-			model: config.OPENAI_MODEL,
-			messages,
-			tools: tools.hasTools() ? tools.getToolDefinitions() : undefined
-		});
+		let choices;
+		let attempt = 0;
+
+		// API Request with Retry Logic
+		while (true) {
+			try {
+				const response = await client.chat.completions.create({
+					model: config.OPENAI_MODEL,
+					messages,
+					tools: tools.hasTools() ? tools.getToolDefinitions() : undefined
+				});
+				choices = response.choices;
+				break; // Success, exit retry loop
+			} catch (error: any) {
+				if (error?.status === 429) {
+					// Check if API specifies wait time, otherwise fallback to exponential backoff (max 60s)
+					const retryAfter = error?.headers?.['retry-after'];
+					const delaySeconds = retryAfter
+						? parseInt(retryAfter, 10)
+						: Math.min(Math.pow(2, attempt), 60);
+
+					console.log(yellow(`Rate limit (429) hit. Waiting ${delaySeconds}s before retrying...`));
+					await setTimeout(delaySeconds * 1000);
+					attempt++;
+				} else {
+					// For any other error (500, 400, etc.), print it and abort the current reasoning step
+					console.log(red(`API Error: ${error?.message || error}`));
+					break;
+				}
+			}
+		}
+
+		// If choices is undefined, it means a non-429 error occurred. Break to ask for user input again.
+		if (!choices) break;
 
 		const msg = choices[0].message;
 		messages.push(msg);
