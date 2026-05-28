@@ -1,5 +1,5 @@
-import { tool } from "../../types.ts";
-import config from "../../config.ts";
+import config from "../config";
+import type { tool } from "../toolManager";
 
 // --- Types ---
 
@@ -26,45 +26,52 @@ const REQUEST_DELAY = 500; // ms
 function formatSearchResultsForLLM(searchResults: BraveResult[]) {
 	return searchResults
 		.map((res, i) => {
-			let markdown = `# ${i + 1}. ${res.title}\n\n${res.url}\n\n${res.age || ''}\n\n---\n`;
-			markdown += `${(res.description || '').replace(/<\/?strong>/g, '**')}`;
-			if (res.extra_snippets?.length) markdown += `\n\n${res.extra_snippets.join('\n')}`;
+			let markdown = `# ${i + 1}. ${res.title}\n\n${res.url}\n\n${res.age || ""}\n\n---\n`;
+			markdown += `${(res.description || "").replace(/<\/?strong>/g, "**")}`;
+			if (res.extra_snippets?.length)
+				markdown += `\n\n${res.extra_snippets.join("\n")}`;
 			return markdown;
 		})
-		.join('\n\n');
+		.join("\n\n");
 }
 
 function delay(ms: number) {
-	return new Promise(r => setTimeout(r, ms));
+	return new Promise((r) => setTimeout(r, ms));
 }
 
-async function performSingleSearch(query: string, resultsPerQuery: number, apiKey: string) {
+async function performSingleSearch(
+	query: string,
+	resultsPerQuery: number,
+	apiKey: string,
+) {
 	console.log(`[System] Searching for: "${query}"...`);
 
 	const params = new URLSearchParams({
 		q: query,
-		safesearch: 'off',
-		spellcheck: 'false',
-		result_filter: 'web',
-		units: 'metric',
-		extra_snippets: 'true',
-		count: String(resultsPerQuery)
+		safesearch: "off",
+		spellcheck: "false",
+		result_filter: "web",
+		units: "metric",
+		extra_snippets: "true",
+		count: String(resultsPerQuery),
 	});
 
 	const url = `${BRAVE_BASE_URL}?${params.toString()}`;
 
 	try {
 		const response = await fetch(url, {
-			method: 'GET',
+			method: "GET",
 			headers: {
-				Accept: 'application/json',
-				'Accept-Encoding': 'gzip',
-				'X-Subscription-Token': apiKey
-			}
+				Accept: "application/json",
+				"Accept-Encoding": "gzip",
+				"X-Subscription-Token": apiKey,
+			},
 		});
 
 		if (!response.ok) {
-			console.error(`[System] Brave API error for query "${query}": ${response.status} ${response.statusText}`);
+			console.error(
+				`[System] Brave API error for query "${query}": ${response.status} ${response.statusText}`,
+			);
 			return null;
 		}
 
@@ -79,25 +86,27 @@ async function performSingleSearch(query: string, resultsPerQuery: number, apiKe
 
 export default {
 	definition: {
-		type: 'function',
+		type: "function",
 		function: {
-			name: 'search_web',
-			description: 'Search the internet for up-to-date information. Accepts a list of queries to perform parallel searches if necessary.',
+			name: "search_web",
+			description:
+				"Search the internet for up-to-date information. Accepts a list of queries to perform parallel searches if necessary.",
 			parameters: {
-				type: 'object',
+				type: "object",
 				properties: {
 					queries: {
-						type: 'array',
+						type: "array",
 						items: {
-							type: 'string'
+							type: "string",
 						},
-						description: 'An array of search queries to execute (e.g. ["current weather in Tokyo", "Tokyo time zone"]).',
-					}
+						description:
+							'An array of search queries to execute (e.g. ["current weather in Tokyo", "Tokyo time zone"]).',
+					},
 				},
-				required: ['queries'],
+				required: ["queries"],
 				additionalProperties: false,
 			},
-			strict: true
+			strict: true,
 		},
 	},
 	execute: async (args: { queries: string[] }) => {
@@ -109,13 +118,20 @@ export default {
 		}
 
 		const queries = args.queries;
-		const resultsPerQuery = Math.max(1, Math.floor(MAX_TOTAL_RESULTS / queries.length));
+		const resultsPerQuery = Math.max(
+			1,
+			Math.floor(MAX_TOTAL_RESULTS / queries.length),
+		);
 
 		try {
 			const bodies: BraveResponse[] = [];
 
 			for (const [index, q] of queries.entries()) {
-				const result = await performSingleSearch(q, resultsPerQuery, apiKey);
+				const result = await performSingleSearch(
+					q,
+					resultsPerQuery,
+					apiKey,
+				);
 				if (result) bodies.push(result);
 
 				// Respect rate limits between calls
@@ -134,10 +150,11 @@ export default {
 				return formattedContent;
 			}
 
-			return 'No search results found or the API response was malformed.';
+			return "No search results found or the API response was malformed.";
+			// biome-ignore lint/suspicious/noExplicitAny: any error can occour
 		} catch (e: any) {
-			console.error('[System] Failed to fetch from Brave Search API:', e);
+			console.error("[System] Failed to fetch from Brave Search API:", e);
 			return `Error: Failed to fetch search results. Details: ${e.message}`;
 		}
-	}
+	},
 } satisfies tool;

@@ -1,8 +1,24 @@
 {
 	"configurations": [
 		{
+			"name": "Run Application",
 			"command": "npm run dev",
-			"name": "Run main.ts",
+			"request": "launch",
+			"type": "node-terminal",
+			"serverReadyAction": {
+				"pattern": "\\b(https?://localhost:\\d+)",
+				"action": "openExternally"
+			}
+		},
+		{
+			"name": "Install Dependencies",
+			"command": "npm install",
+			"request": "launch",
+			"type": "node-terminal"
+		},
+		{
+			"name": "Lint Code",
+			"command": "npm run lint",
 			"request": "launch",
 			"type": "node-terminal"
 		}

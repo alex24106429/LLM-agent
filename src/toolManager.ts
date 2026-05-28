@@ -1,21 +1,29 @@
-import { join, dirname } from "path";
-import { fileURLToPath, pathToFileURL } from "url";
-import { readdir } from "fs/promises";
-import type { tool } from "./types.ts";
+import { readdir } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import type OpenAI from "openai";
+
+export interface tool {
+	definition: OpenAI.ChatCompletionTool;
+	// biome-ignore lint/suspicious/noExplicitAny: different functions have different args
+	execute: (args: any) => Promise<string> | string;
+}
 
 export class toolManager {
 	private tools = new Map<string, tool>();
 
 	async loadTools() {
 		const baseDir = dirname(fileURLToPath(import.meta.url));
-		const folders = ["tools/default", "tools/user"].map(p => join(baseDir, p));
+		const folders = ["tools/"].map((p) => join(baseDir, p));
 		const loaded: string[] = [];
 
 		for (const folder of folders) {
-			const files = await readdir(folder, { withFileTypes: true }).catch(() => []);
+			const files = await readdir(folder, { withFileTypes: true }).catch(
+				() => [],
+			);
 
 			for (const file of files) {
-				if (!file.isFile() || !file.name.endsWith(".ts")) continue;
+				if (!file.isFile() || !file.name.endsWith("")) continue;
 
 				try {
 					const url = pathToFileURL(join(folder, file.name)).href;
@@ -26,10 +34,15 @@ export class toolManager {
 						this.tools.set(name, tool);
 						loaded.push(name);
 					} else {
-						console.warn(`[System] Skipped non-function tool in ${file.name}`);
+						console.warn(
+							`[System] Skipped non-function tool in ${file.name}`,
+						);
 					}
 				} catch (error) {
-					console.error(`Error loading tool from ${file.name}:`, error);
+					console.error(
+						`Error loading tool from ${file.name}:`,
+						error,
+					);
 				}
 			}
 		}
@@ -39,7 +52,13 @@ export class toolManager {
 		}
 	}
 
-	getToolDefinitions() { return Array.from(this.tools.values()).map(t => t.definition); }
-	getTool(name: string) { return this.tools.get(name); }
-	hasTools() { return this.tools.size > 0; }
+	getToolDefinitions() {
+		return Array.from(this.tools.values()).map((t) => t.definition);
+	}
+	getTool(name: string) {
+		return this.tools.get(name);
+	}
+	hasTools() {
+		return this.tools.size > 0;
+	}
 }
