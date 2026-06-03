@@ -1,141 +1,146 @@
-import readline from "node:readline/promises";
-import { setTimeout } from "node:timers/promises";
 import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
 import config from "./config";
-import { toolManager } from "./toolManager";
 
-const c = (code: number) => (s: string) => `\x1b[${code}m${s}\x1b[39m`;
-const [blue, gray, red, yellow] = [c(34), c(90), c(31), c(33)];
-
-const rl = readline.createInterface({
-	input: process.stdin,
-	output: process.stdout,
-});
-const client = new OpenAI({
+const openai = new OpenAI({
 	baseURL: config.OPENAI_BASE_URL,
 	apiKey: config.OPENAI_API_KEY,
 });
 
-const tools = new toolManager();
-await tools.loadTools();
+const UserWishesSchema = z.object({
+	budget: z.number().describe("Het maximale budget van de gebruiker in Euros (als getal)"),
+	games: z.array(z.string()).describe("Lijst met games die de gebruiker wil spelen"),
+	resolution: z.enum(["1080p", "1440p", "4K"]).describe("De gewenste doelresolutie"),
+});
 
-const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+type UserWishes = z.infer<typeof UserWishesSchema>;
+
+async function parseUserWishes(prompt: string): Promise<UserWishes> {
+	const response = await openai.chat.completions.parse({
+		model: config.OPENAI_MODEL,
+		messages: [
+			{
+				role: "system",
+				content: "Jij bent een assistent die wensen voor een PC-build extracteert naar JSON.",
+			},
+			{ role: "user", content: prompt },
+		],
+		response_format: zodResponseFormat(UserWishesSchema, "user_wishes"),
+	});
+
+	return response.choices[0].message.parsed as UserWishes;
+}
+
+function getComponentPrice(componentName: string): number {
+	const nameLower = componentName.toLowerCase();
+	if (nameLower.includes("4090")) return 2000;
+	if (nameLower.includes("4080")) return 1100;
+	if (nameLower.includes("4070")) return 600;
+	if (nameLower.includes("4060")) return 300;
+	return 400;
+}
+
+const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 	{
-		role: "system",
-		content: `You are a helpful assistant.\nCurrent date: ${new Date().toDateString()}`,
+		type: "function",
+		function: {
+			name: "get_component_price",
+			description: "Haal de actuele marktprijs op van een PC component in Euros.",
+			parameters: {
+				type: "object",
+				properties: {
+					componentName: {
+						type: "string",
+						description: "Bijv: 'RTX 4090' of 'RX 7800 XT'",
+					},
+				},
+				required: ["componentName"],
+			},
+		},
 	},
 ];
 
-console.log(red("--- Agent ---"));
-console.log(blue(`Model: ${config.OPENAI_MODEL}`));
-console.log(gray("Type 'exit' to stop."));
+async function selectGpuWithBudgetCheck(wishes: UserWishes) {
+	const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+		{
+			role: "system",
+			content: `Je bent een PC-builder. Kies een geschikte videokaart (GPU) voor de games: ${wishes.games.join(", ")} op ${wishes.resolution}.
+            BELANGRIJK: Een GPU mag maximaal 45% van het totale budget (€${wishes.budget}) innemen.
+            Roep ALTIJD de tool 'get_component_price' aan om de prijs te controleren.`,
+		},
+		{ role: "user", content: "Kies een GPU en check de prijs." },
+	];
 
-while (true) {
-	const userInput = (await rl.question(blue("\n> "))).trim();
-	if (!userInput) continue;
-	if (userInput.toLowerCase() === "exit") break;
+	let isBudgetOk = false;
+	let finalGPU = "";
+	let attempts = 0;
+	const maxGpuBudget = wishes.budget * 0.45;
 
-	messages.push({ role: "user", content: userInput });
+	console.log(`\n[Start Loop] Doel GPU budget is max €${maxGpuBudget} (45% van €${wishes.budget})`);
 
-	// Agent Reasoning Loop
-	while (true) {
-		// biome-ignore lint/suspicious/noExplicitAny: LLM can return any tool choices
-		let choices: any;
-		let attempt = 0;
+	while (!isBudgetOk && attempts < 3) {
+		attempts++;
+		console.log(`\n--- Iteratie ${attempts} ---`);
 
-		// API Request with Retry Logic
-		while (true) {
-			try {
-				const response = await client.chat.completions.create({
-					model: config.OPENAI_MODEL,
-					messages,
-					tools: tools.hasTools()
-						? tools.getToolDefinitions()
-						: undefined,
-				});
-				choices = response.choices;
-				break; // Success, exit retry loop
-				// biome-ignore lint/suspicious/noExplicitAny: any error can occour
-			} catch (error: any) {
-				if (error?.status === 429) {
-					// Check if API specifies wait time, otherwise fallback to exponential backoff (max 60s)
-					const retryAfter = error?.headers?.["retry-after"];
-					const delaySeconds = retryAfter
-						? parseInt(retryAfter, 10)
-						: Math.min(2 ** attempt, 60);
+		const response = await openai.chat.completions.create({
+			model: config.OPENAI_MODEL,
+			messages: messages,
+			tools: tools,
+			tool_choice: "auto",
+		});
 
-					console.log(
-						yellow(
-							`Rate limit (429) hit. Waiting ${delaySeconds}s before retrying...`,
-						),
-					);
-					await setTimeout(delaySeconds * 1000);
-					attempt++;
-				} else {
-					// For any other error (500, 400, etc.), print it and abort the current reasoning step
-					console.log(red(`API Error: ${error?.message || error}`));
-					break;
+		const responseMessage = response.choices[0].message;
+		messages.push(responseMessage);
+
+		if (responseMessage.tool_calls) {
+			for (const toolCall of responseMessage.tool_calls) {
+				if (toolCall.type === "function" && toolCall.function.name === "get_component_price") {
+					const args = JSON.parse(toolCall.function.arguments);
+
+					const price = getComponentPrice(args.componentName);
+					console.log(`>> LLM koos GPU: '${args.componentName}'. API checkt prijs: €${price}`);
+
+					messages.push({
+						role: "tool",
+						tool_call_id: toolCall.id,
+						content: price.toString(),
+					});
+
+					if (price <= maxGpuBudget) {
+						console.log("Budget check geslaagd! Past binnen budget.");
+						isBudgetOk = true;
+						finalGPU = args.componentName;
+					} else {
+						console.log("GPU is te duur. LLM instrueren om een goedkopere te zoeken...");
+						messages.push({
+							role: "user",
+							content: `De prijs is €${price}. Dit is meer dan ons budget van €${maxGpuBudget} voor de GPU. Kies een goedkoper alternatief en check opnieuw de prijs.`,
+						});
+					}
 				}
 			}
 		}
-
-		// If choices is undefined, it means a non-429 error occurred. Break to ask for user input again.
-		if (!choices) break;
-
-		const msg = choices[0].message;
-		messages.push(msg);
-
-		// If no tools were called, print the LLMs's response and break out to ask the user
-		if (!msg.tool_calls?.length) {
-			if (msg.content) {
-				console.log(yellow("Agent:\n") + msg.content.trim());
-			}
-			break;
-		}
-
-		// Execute all requested tools in parallel
-		const toolResults = await Promise.all(
-			msg.tool_calls.map(
-				async (call: {
-					type: string;
-					// biome-ignore lint/suspicious/noExplicitAny: tools can have any ID
-					id: any;
-					// biome-ignore lint/suspicious/noExplicitAny: tools can have any name
-					function: { name: any; arguments: string };
-				}) => {
-					if (call.type !== "function") {
-						return {
-							role: "tool" as const,
-							tool_call_id: call.id,
-							content: `Error: Unsupported tool type "${call.type}".`,
-						};
-					}
-
-					const toolName = call.function.name;
-					const tool = tools.getTool(toolName);
-					let content = `Error: Tool ${toolName} not found.`;
-
-					if (tool) {
-						try {
-							const args = JSON.parse(call.function.arguments);
-							content = await tool.execute(args);
-						} catch (e) {
-							content = `Error executing tool: ${e}`;
-						}
-					}
-
-					return {
-						role: "tool" as const,
-						tool_call_id: call.id,
-						content,
-					};
-				},
-			),
-		);
-
-		messages.push(...toolResults);
 	}
+
+	return finalGPU;
 }
 
-console.log("Goodbye!");
-process.exit(0);
+async function runExperiment() {
+	console.log("Start PC-Builder Agent Onderzoek (OpenAI SDK + TS)");
+
+	const prompt = "Ik wil graag een PC bouwen om Cyberpunk 2077 en Starfield op te spelen in 4K. Mijn totale budget is 1500 euro.";
+	console.log("\n[Gebruiker input]:", prompt);
+
+	console.log("\n[Stap 1] Parsen via Structured Outputs & Zod...");
+	const wishes = await parseUserWishes(prompt);
+	console.log("Parsed JSON (Strict Typings):");
+	console.log(JSON.stringify(wishes, null, 2));
+
+	console.log("\n[Stap 2-7] Hardware selecteren, prijs API bellen & budget loop draaien...");
+	const selectedGpu = await selectGpuWithBudgetCheck(wishes);
+
+	console.log(`\nRESULTAAT: De agent heeft uiteindelijk '${selectedGpu}' geselecteerd.`);
+}
+
+runExperiment().catch(console.error);

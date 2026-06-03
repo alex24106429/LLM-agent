@@ -1,0 +1,45 @@
+import { Badge, Paper, Text, Timeline } from "@mantine/core";
+import { IconAlertCircle, IconCheck, IconCpu, IconRotateDot } from "@tabler/icons-react";
+import SectionTitle from "./SectionTitle";
+
+export interface TimelineStep {
+	icon: "check" | "cpu" | "alert" | "rotate";
+	title: string;
+	text: string;
+	badge?: { color: string; text: string };
+	lineVariant?: "solid";
+}
+
+const iconMap = {
+	check: IconCheck,
+	cpu: IconCpu,
+	alert: IconAlertCircle,
+	rotate: IconRotateDot,
+};
+
+export default function AgentReasoningCard({ steps, activeStep }: { steps: TimelineStep[]; activeStep: number }) {
+	return (
+		<Paper withBorder p="md" radius="md">
+			<SectionTitle icon={<IconRotateDot size={20} color="purple" />}>Agent Redeneerproces</SectionTitle>
+
+			<Timeline active={activeStep} bulletSize={24} lineWidth={2}>
+				{steps.map((step, index) => {
+					const IconComponent = iconMap[step.icon];
+					return (
+						// biome-ignore lint/suspicious/noArrayIndexKey: static list
+						<Timeline.Item key={index} bullet={<IconComponent size={12} />} title={step.title} lineVariant={step.lineVariant as "solid" | undefined}>
+							<Text size="xs" c="dimmed">
+								{step.text}
+							</Text>
+							{step.badge && (
+								<Badge color={step.badge.color} size="xs" mt={4}>
+									{step.badge.text}
+								</Badge>
+							)}
+						</Timeline.Item>
+					);
+				})}
+			</Timeline>
+		</Paper>
+	);
+}

@@ -19,11 +19,9 @@ try {
 }
 
 const config: ConfigType = {
-	OPENAI_BASE_URL:
-		process.env.OPENAI_BASE_URL || fileConfig.OPENAI_BASE_URL || "",
+	OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || fileConfig.OPENAI_BASE_URL || "",
 	OPENAI_MODEL: process.env.OPENAI_MODEL || fileConfig.OPENAI_MODEL || "",
-	OPENAI_API_KEY:
-		process.env.OPENAI_API_KEY || fileConfig.OPENAI_API_KEY || "",
+	OPENAI_API_KEY: process.env.OPENAI_API_KEY || fileConfig.OPENAI_API_KEY || "",
 	BRAVE_API_KEY: process.env.BRAVE_API_KEY || fileConfig.BRAVE_API_KEY,
 };
 

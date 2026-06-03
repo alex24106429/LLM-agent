@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 282 282"
+   width="282"
+   height="282"
+   version="1.1"
+   id="svg20"
+   sodipodi:docname="optibuild.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview20"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.96402225"
+     inkscape:cx="6.742583"
+     inkscape:cy="286.30045"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg20" />
+  <defs
+     id="defs6">
+    <!-- Background Gradient -->
+    <radialGradient
+       id="bg-grad"
+       cx="0.5"
+       cy="0.5"
+       r="0.69999999"
+       fx="0.5"
+       fy="0.5">
+      <stop
+         offset="0%"
+         stop-color="#1e293b"
+         id="stop1" />
+      <stop
+         offset="100%"
+         stop-color="#020617"
+         id="stop2" />
+    </radialGradient>
+    <!-- CPU Frame Gradient (Tech / AI vibe) -->
+    <linearGradient
+       id="cpu-grad"
+       x1="190"
+       y1="130"
+       x2="410"
+       y2="350"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-159,-99)">
+      <stop
+         offset="0%"
+         stop-color="#3b82f6"
+         id="stop3" />
+      <stop
+         offset="100%"
+         stop-color="#6366f1"
+         id="stop4" />
+    </linearGradient>
+    <!-- Checkmark/Circuit Gradient (Optimization / Success vibe) -->
+    <linearGradient
+       id="check-grad"
+       x1="0"
+       y1="1"
+       x2="1"
+       y2="0">
+      <stop
+         offset="0%"
+         stop-color="#10b981"
+         id="stop5" />
+      <stop
+         offset="100%"
+         stop-color="#06b6d4"
+         id="stop6" />
+    </linearGradient>
+    <!-- Glowing filter for the inner circuit -->
+    <filter
+       id="glow"
+       x="-0.10746269"
+       y="-0.12631579"
+       width="1.2149254"
+       height="1.2526316">
+      <feGaussianBlur
+         stdDeviation="6"
+         result="blur"
+         id="feGaussianBlur6" />
+      <feComposite
+         in="SourceGraphic"
+         in2="blur"
+         operator="over"
+         id="feComposite6" />
+    </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#check-grad"
+       id="linearGradient23"
+       x1="211.56874"
+       y1="326.13458"
+       x2="331.15106"
+       y2="206.55225"
+       gradientTransform="scale(1.0871171,0.91986409)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#check-grad"
+       id="linearGradient24"
+       x1="228"
+       y1="262"
+       x2="252"
+       y2="238"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#check-grad"
+       id="linearGradient25"
+       x1="268"
+       y1="302"
+       x2="292"
+       y2="278"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#check-grad"
+       id="linearGradient26"
+       x1="338"
+       y1="212"
+       x2="362"
+       y2="188"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <!-- App Icon Background -->
+  <!-- CPU Pins -->
+  <g
+     stroke="#475569"
+     stroke-width="12"
+     stroke-linecap="round"
+     id="g17"
+     transform="translate(-159,-99)">
+    <!-- Top Pins -->
+    <line
+       x1="240"
+       y1="105"
+       x2="240"
+       y2="140"
+       id="line6" />
+    <line
+       x1="300"
+       y1="105"
+       x2="300"
+       y2="140"
+       id="line7" />
+    <line
+       x1="360"
+       y1="105"
+       x2="360"
+       y2="140"
+       id="line8" />
+    <!-- Bottom Pins -->
+    <line
+       x1="240"
+       y1="340"
+       x2="240"
+       y2="375"
+       id="line9" />
+    <line
+       x1="300"
+       y1="340"
+       x2="300"
+       y2="375"
+       id="line10" />
+    <line
+       x1="360"
+       y1="340"
+       x2="360"
+       y2="375"
+       id="line11" />
+    <!-- Left Pins -->
+    <line
+       x1="165"
+       y1="180"
+       x2="200"
+       y2="180"
+       id="line12" />
+    <line
+       x1="165"
+       y1="240"
+       x2="200"
+       y2="240"
+       id="line13" />
+    <line
+       x1="165"
+       y1="300"
+       x2="200"
+       y2="300"
+       id="line14" />
+    <!-- Right Pins -->
+    <line
+       x1="400"
+       y1="180"
+       x2="435"
+       y2="180"
+       id="line15" />
+    <line
+       x1="400"
+       y1="240"
+       x2="435"
+       y2="240"
+       id="line16" />
+    <line
+       x1="400"
+       y1="300"
+       x2="435"
+       y2="300"
+       id="line17" />
+  </g>
+  <!-- CPU Outer Square -->
+  <rect
+     x="41"
+     y="41"
+     width="200"
+     height="200"
+     rx="32"
+     fill="none"
+     stroke="url(#cpu-grad)"
+     stroke-width="20"
+     id="rect17"
+     style="stroke:url(#cpu-grad)" />
+  <!-- Inner Circuit / Checkmark (The Optimization Element) -->
+  <g
+     filter="url(#glow)"
+     id="g19"
+     transform="translate(-159,-99)">
+    <polyline
+       points="240,250 280,290 350,200"
+       fill="none"
+       stroke="url(#check-grad)"
+       stroke-width="20"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       id="polyline17"
+       style="stroke:url(#linearGradient23)" />
+    <!-- Circuit Nodes -->
+    <circle
+       cx="240"
+       cy="250"
+       r="12"
+       fill="url(#check-grad)"
+       id="circle17"
+       style="fill:url(#linearGradient24)" />
+    <circle
+       cx="280"
+       cy="290"
+       r="12"
+       fill="url(#check-grad)"
+       id="circle18"
+       style="fill:url(#linearGradient25)" />
+    <circle
+       cx="350"
+       cy="200"
+       r="12"
+       fill="url(#check-grad)"
+       id="circle19"
+       style="fill:url(#linearGradient26)" />
+  </g>
+  <!-- Typography: Title -->
+  <!-- Typography: Subtitle -->
+</svg>

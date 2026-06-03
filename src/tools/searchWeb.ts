@@ -28,8 +28,7 @@ function formatSearchResultsForLLM(searchResults: BraveResult[]) {
 		.map((res, i) => {
 			let markdown = `# ${i + 1}. ${res.title}\n\n${res.url}\n\n${res.age || ""}\n\n---\n`;
 			markdown += `${(res.description || "").replace(/<\/?strong>/g, "**")}`;
-			if (res.extra_snippets?.length)
-				markdown += `\n\n${res.extra_snippets.join("\n")}`;
+			if (res.extra_snippets?.length) markdown += `\n\n${res.extra_snippets.join("\n")}`;
 			return markdown;
 		})
 		.join("\n\n");
@@ -39,11 +38,7 @@ function delay(ms: number) {
 	return new Promise((r) => setTimeout(r, ms));
 }
 
-async function performSingleSearch(
-	query: string,
-	resultsPerQuery: number,
-	apiKey: string,
-) {
+async function performSingleSearch(query: string, resultsPerQuery: number, apiKey: string) {
 	console.log(`[System] Searching for: "${query}"...`);
 
 	const params = new URLSearchParams({
@@ -69,9 +64,7 @@ async function performSingleSearch(
 		});
 
 		if (!response.ok) {
-			console.error(
-				`[System] Brave API error for query "${query}": ${response.status} ${response.statusText}`,
-			);
+			console.error(`[System] Brave API error for query "${query}": ${response.status} ${response.statusText}`);
 			return null;
 		}
 
@@ -89,8 +82,7 @@ export default {
 		type: "function",
 		function: {
 			name: "search_web",
-			description:
-				"Search the internet for up-to-date information. Accepts a list of queries to perform parallel searches if necessary.",
+			description: "Search the internet for up-to-date information. Accepts a list of queries to perform parallel searches if necessary.",
 			parameters: {
 				type: "object",
 				properties: {
@@ -99,8 +91,7 @@ export default {
 						items: {
 							type: "string",
 						},
-						description:
-							'An array of search queries to execute (e.g. ["current weather in Tokyo", "Tokyo time zone"]).',
+						description: 'An array of search queries to execute (e.g. ["current weather in Tokyo", "Tokyo time zone"]).',
 					},
 				},
 				required: ["queries"],
@@ -118,20 +109,13 @@ export default {
 		}
 
 		const queries = args.queries;
-		const resultsPerQuery = Math.max(
-			1,
-			Math.floor(MAX_TOTAL_RESULTS / queries.length),
-		);
+		const resultsPerQuery = Math.max(1, Math.floor(MAX_TOTAL_RESULTS / queries.length));
 
 		try {
 			const bodies: BraveResponse[] = [];
 
 			for (const [index, q] of queries.entries()) {
-				const result = await performSingleSearch(
-					q,
-					resultsPerQuery,
-					apiKey,
-				);
+				const result = await performSingleSearch(q, resultsPerQuery, apiKey);
 				if (result) bodies.push(result);
 
 				// Respect rate limits between calls

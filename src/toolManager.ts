@@ -18,9 +18,7 @@ export class toolManager {
 		const loaded: string[] = [];
 
 		for (const folder of folders) {
-			const files = await readdir(folder, { withFileTypes: true }).catch(
-				() => [],
-			);
+			const files = await readdir(folder, { withFileTypes: true }).catch(() => []);
 
 			for (const file of files) {
 				if (!file.isFile() || !file.name.endsWith("")) continue;
@@ -34,15 +32,10 @@ export class toolManager {
 						this.tools.set(name, tool);
 						loaded.push(name);
 					} else {
-						console.warn(
-							`[System] Skipped non-function tool in ${file.name}`,
-						);
+						console.warn(`[System] Skipped non-function tool in ${file.name}`);
 					}
 				} catch (error) {
-					console.error(
-						`Error loading tool from ${file.name}:`,
-						error,
-					);
+					console.error(`Error loading tool from ${file.name}:`, error);
 				}
 			}
 		}

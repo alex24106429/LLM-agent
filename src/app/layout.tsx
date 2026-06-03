@@ -1,8 +1,8 @@
 import "@mantine/core/styles.css";
 
 export const metadata = {
-	title: "PC Builder Agent",
-	description: "PC Builder Agent",
+	title: "OptiBuild",
+	description: "LLM Agent building your dream PC precisely to your needs and preferences.",
 };
 
 export default function RootLayout({
@@ -12,6 +12,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="nl">
+			<link rel="shortcut icon" href="/favicon.svg" />
 			<body>{children}</body>
 		</html>
 	);
