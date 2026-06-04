@@ -1,7 +1,7 @@
 import "@mantine/core/styles.css";
 
 export const metadata = {
-	title: "OptiBuild",
+	title: "CHASSIS",
 	description: "LLM Agent building your dream PC precisely to your needs and preferences.",
 };
 

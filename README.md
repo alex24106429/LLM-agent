@@ -1,4 +1,6 @@
-# PC Builder Agent
+# CHASSIS
+
+Computer Hardware Agent for System Selection & Integration Service
 
 ## Prerequisites
 

@@ -69,7 +69,7 @@ export default function PCBuilderAgentUI() {
 		<MantineProvider>
 			<Container size="xl" py="lg">
 				<Group justify="space-between" mb="lg">
-					<Title>OptiBuild</Title>
+					<Title>CHASSIS</Title>
 				</Group>
 
 				<Grid>
