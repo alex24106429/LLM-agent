@@ -41,3 +41,5 @@ next-env.d.ts
 
 # user config
 config.json
+
+.idea
