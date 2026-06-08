@@ -1,36 +1,10 @@
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { z } from "zod";
 import config from "./config";
 
 const openai = new OpenAI({
 	baseURL: config.OPENAI_BASE_URL,
 	apiKey: config.OPENAI_API_KEY,
 });
-
-const UserWishesSchema = z.object({
-	budget: z.number().describe("Het maximale budget van de gebruiker in Euros (als getal)"),
-	games: z.array(z.string()).describe("Lijst met games die de gebruiker wil spelen"),
-	resolution: z.enum(["1080p", "1440p", "4K"]).describe("De gewenste doelresolutie"),
-});
-
-type UserWishes = z.infer<typeof UserWishesSchema>;
-
-async function parseUserWishes(prompt: string): Promise<UserWishes> {
-	const response = await openai.chat.completions.parse({
-		model: config.OPENAI_MODEL,
-		messages: [
-			{
-				role: "system",
-				content: "Jij bent een assistent die wensen voor een PC-build extracteert naar JSON.",
-			},
-			{ role: "user", content: prompt },
-		],
-		response_format: zodResponseFormat(UserWishesSchema, "user_wishes"),
-	});
-
-	return response.choices[0].message.parsed as UserWishes;
-}
 
 function getComponentPrice(componentName: string): number {
 	const nameLower = componentName.toLowerCase();
@@ -61,25 +35,22 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 	},
 ];
 
-async function selectGpuWithBudgetCheck(wishes: UserWishes) {
+async function selectGpuWithBudgetCheck(userPrompt: string) {
 	const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
-			content: `Je bent een PC-builder. Kies een geschikte videokaart (GPU) voor de games: ${wishes.games.join(", ")} op ${wishes.resolution}.
-            BELANGRIJK: Een GPU mag maximaal 45% van het totale budget (€${wishes.budget}) innemen.
-            Roep ALTIJD de tool 'get_component_price' aan om de prijs te controleren.`,
+			content: `Je bent een PC-builder. Lees de wensen en het budget van de gebruiker. Kies een geschikte videokaart (GPU).
+            BELANGRIJK: Een GPU mag maximaal 45% van het totale budget innemen. Bereken dit bedrag zelf op basis van het budget van de gebruiker.
+            Roep ALTIJD de tool 'get_component_price' aan om de prijs te controleren. Als de prijs te hoog is, roep de tool dan opnieuw aan voor een goedkoper alternatief.`,
 		},
-		{ role: "user", content: "Kies een GPU en check de prijs." },
+		{ role: "user", content: userPrompt },
 	];
 
-	let isBudgetOk = false;
-	let finalGPU = "";
 	let attempts = 0;
-	const maxGpuBudget = wishes.budget * 0.45;
 
-	console.log(`\n[Start Loop] Doel GPU budget is max €${maxGpuBudget} (45% van €${wishes.budget})`);
+	console.log(`\n[Start Loop] GPU selecteren en budget controleren...`);
 
-	while (!isBudgetOk && attempts < 3) {
+	while (attempts < 5) {
 		attempts++;
 		console.log(`\n--- Iteratie ${attempts} ---`);
 
@@ -106,24 +77,15 @@ async function selectGpuWithBudgetCheck(wishes: UserWishes) {
 						tool_call_id: toolCall.id,
 						content: price.toString(),
 					});
-
-					if (price <= maxGpuBudget) {
-						console.log("Budget check geslaagd! Past binnen budget.");
-						isBudgetOk = true;
-						finalGPU = args.componentName;
-					} else {
-						console.log("GPU is te duur. LLM instrueren om een goedkopere te zoeken...");
-						messages.push({
-							role: "user",
-							content: `De prijs is €${price}. Dit is meer dan ons budget van €${maxGpuBudget} voor de GPU. Kies een goedkoper alternatief en check opnieuw de prijs.`,
-						});
-					}
 				}
 			}
+		} else {
+			console.log("LLM is tevreden met de keuze en past binnen het budget!");
+			return responseMessage.content;
 		}
 	}
 
-	return finalGPU;
+	return "Kon geen geschikte GPU vinden binnen de toegestane pogingen.";
 }
 
 async function runExperiment() {
@@ -132,15 +94,10 @@ async function runExperiment() {
 	const prompt = "Ik wil graag een PC bouwen om Cyberpunk 2077 en Starfield op te spelen in 4K. Mijn totale budget is 1500 euro.";
 	console.log("\n[Gebruiker input]:", prompt);
 
-	console.log("\n[Stap 1] Parsen via Structured Outputs & Zod...");
-	const wishes = await parseUserWishes(prompt);
-	console.log("Parsed JSON (Strict Typings):");
-	console.log(JSON.stringify(wishes, null, 2));
+	console.log("\n[Stap 1] Hardware selecteren, prijs API bellen & budget loop draaien...");
+	const result = await selectGpuWithBudgetCheck(prompt);
 
-	console.log("\n[Stap 2-7] Hardware selecteren, prijs API bellen & budget loop draaien...");
-	const selectedGpu = await selectGpuWithBudgetCheck(wishes);
-
-	console.log(`\nRESULTAAT: De agent heeft uiteindelijk '${selectedGpu}' geselecteerd.`);
+	console.log(`\nRESULTAAT:\n${result}`);
 }
 
 runExperiment().catch(console.error);
