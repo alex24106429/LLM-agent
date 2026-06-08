@@ -75,7 +75,7 @@ export default function PCBuilderAgentUI() {
 				<Grid>
 					<Grid.Col span={{ base: 12, md: 5 }}>
 						<Stack gap="md">
-							<UserRequirementsCard prompt={userPrompt} />
+							<UserRequirementsCard />
 							<AgentReasoningCard steps={timelineSteps} activeStep={5} />
 						</Stack>
 					</Grid.Col>
