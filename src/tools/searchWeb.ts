@@ -129,9 +129,10 @@ export default {
 			}
 
 			return "No search results found or the API response was malformed.";
-		} catch (e: any) {
+		} catch (e: unknown) {
 			console.error("[System] Failed to fetch from Brave Search API:", e);
-			return `Error: Failed to fetch search results. Details: ${e.message}`;
+			const err = e as { message?: string };
+			return `Error: Failed to fetch search results. Details: ${err.message ?? "unknown error"}`;
 		}
 	},
 };

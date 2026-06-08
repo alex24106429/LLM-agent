@@ -12,27 +12,14 @@ const openai = new OpenAI({
 });
 
 const PriceSchema = z.object({
-	price: z
-		.number()
-		.describe("The typical retail price in EUR. Use the median of credible listings."),
+	price: z.number().describe("The typical retail price in EUR. Use the median of credible listings."),
 	currency: z.literal("EUR").describe("Always normalize to EUR."),
-	confidence: z
-		.enum(["high", "medium", "low"])
-		.describe("How confident you are based on the number and agreement of sources."),
+	confidence: z.enum(["high", "medium", "low"]).describe("How confident you are based on the number and agreement of sources."),
 });
 
 export type ComponentPrice = z.infer<typeof PriceSchema>;
 
-const COMPONENT_CATEGORIES = [
-	"CPU",
-	"GPU",
-	"Motherboard",
-	"RAM",
-	"Storage",
-	"PSU",
-	"Case",
-	"Cooler",
-] as const;
+const COMPONENT_CATEGORIES = ["CPU", "GPU", "Motherboard", "RAM", "Storage", "PSU", "Case", "Cooler"] as const;
 
 type ComponentCategory = (typeof COMPONENT_CATEGORIES)[number];
 
@@ -64,11 +51,12 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 10, baseDelayMs =
 	while (attempt < maxRetries) {
 		try {
 			return await fn();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			attempt++;
-			const isRateLimit = error?.status === 429 || error?.message?.includes("429");
+			const err = error as { status?: number; message?: string };
+			const isRateLimit = err.status === 429 || err.message?.includes("429");
 			if (isRateLimit && attempt < maxRetries) {
-				const delay = baseDelayMs * Math.pow(2, attempt - 1);
+				const delay = baseDelayMs * 2 ** (attempt - 1);
 				console.warn(`[API] 429 Rate limit hit, retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
 				await new Promise((resolve) => setTimeout(resolve, delay));
 			} else {
@@ -82,11 +70,11 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 10, baseDelayMs =
 
 // --- RATE LIMITER FOR WEB SEARCHES ---
 // ⚡ FIX: Voorkom dat de hele Promise Queue vastloopt als er eentje faalt
-let searchQueue = Promise.resolve<any>(null);
+let searchQueue: Promise<unknown> = Promise.resolve(null);
 let lastSearchTime = 0;
 const SEARCH_DELAY_MS = 1500;
 
-async function rateLimitedSearchWebToolExecute(params: { queries: string[] }): Promise<any> {
+async function rateLimitedSearchWebToolExecute(params: { queries: string[] }): Promise<string> {
 	const task = async () => {
 		const now = Date.now();
 		const timeToWait = Math.max(0, SEARCH_DELAY_MS - (now - lastSearchTime));
@@ -111,19 +99,13 @@ async function rateLimitedSearchWebToolExecute(params: { queries: string[] }): P
 	return resultPromise;
 }
 // -------------------------------------
-export async function getComponentPrice(
-	componentName: string,
-	category: ComponentCategory = "GPU",
-): Promise<number> {
+export async function getComponentPrice(componentName: string, category: ComponentCategory = "GPU"): Promise<number> {
 	const fallback = FALLBACK_PRICES[category];
 	const [minPrice, maxPrice] = PRICE_RANGES[category];
 
 	try {
 		const result = await rateLimitedSearchWebToolExecute({
-			queries: [
-				`${componentName} ${category} price EUR`,
-				`${componentName} prijs kopen nederland`,
-			],
+			queries: [`${componentName} ${category} price EUR`, `${componentName} prijs kopen nederland`],
 		});
 
 		if (typeof result !== "string" || result.startsWith("Error")) {
@@ -144,15 +126,11 @@ export async function getComponentPrice(
 					},
 					{
 						role: "user",
-						content:
-							`Component category: ${category}\n` +
-							`Component: ${componentName}\n\n` +
-							`Search results:\n${result}\n\n` +
-							`Return the typical retail price in EUR.`,
+						content: `Component category: ${category}\nComponent: ${componentName}\n\nSearch results:\n${result}\n\nReturn the typical retail price in EUR.`,
 					},
 				],
 				response_format: zodResponseFormat(PriceSchema, "price"),
-			})
+			}),
 		);
 
 		const object = completion.choices[0].message.parsed;
@@ -180,8 +158,7 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 				properties: {
 					componentName: {
 						type: "string",
-						description:
-							"Specifieke productnaam, bijv: 'AMD Ryzen 7 7700X', 'RTX 4070 Super', 'Corsair Vengeance 32GB DDR5-6000'.",
+						description: "Specifieke productnaam, bijv: 'AMD Ryzen 7 7700X', 'RTX 4070 Super', 'Corsair Vengeance 32GB DDR5-6000'.",
 					},
 					category: {
 						type: "string",
@@ -222,7 +199,7 @@ export async function buildPcWithBudgetCheck(userPrompt: string) {
 		attempts++;
 		console.log(`\n--- Iteratie ${attempts} ---`);
 
-		let response;
+		let response: OpenAI.Chat.Completions.ChatCompletion;
 		try {
 			// Ook omwikkeld in de retry en try...catch
 			response = await withRetry(() =>
@@ -231,9 +208,9 @@ export async function buildPcWithBudgetCheck(userPrompt: string) {
 					messages: messages,
 					tools: tools,
 					tool_choice: "auto",
-				})
+				}),
 			);
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error("[buildPcWithBudgetCheck] Error in OpenAI loop:", error);
 			// Netjes falen in plaats van de server action te laten crashen
 			return "Er is een serverfout opgetreden met de AI (bijv. 429 Too Many Requests). Probeer het later nog eens.";
@@ -247,10 +224,7 @@ export async function buildPcWithBudgetCheck(userPrompt: string) {
 			// Dit voorkomt dat je 8 simultane verbindingen opent naar OpenAI
 			const toolResults = [];
 			for (const toolCall of responseMessage.tool_calls) {
-				if (
-					toolCall.type === "function" &&
-					toolCall.function.name === "get_component_price"
-				) {
+				if (toolCall.type === "function" && toolCall.function.name === "get_component_price") {
 					const args = JSON.parse(toolCall.function.arguments) as {
 						componentName: string;
 						category?: ComponentCategory;

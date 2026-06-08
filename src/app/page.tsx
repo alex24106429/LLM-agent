@@ -1,8 +1,8 @@
 // page.tsx
 "use client";
 
+import { Card, Center, Container, Grid, Group, Loader, MantineProvider, Stack, Text, Title } from "@mantine/core";
 import { useState, useTransition } from "react";
-import { Container, Grid, Group, MantineProvider, Stack, Title, Card, Text, Loader, Center } from "@mantine/core";
 import UserRequirementsCard from "@/components/UserRequirementsCard";
 
 // 1. DIRECTLY IMPORT THE SERVER ACTION FROM YOUR MAIN.TS!
@@ -58,7 +58,9 @@ export default function PCBuilderAgentUI() {
 					<Grid.Col span={{ base: 12, md: 7 }}>
 						{buildResult && !isPending && (
 							<Card shadow="sm" padding="lg" radius="md" withBorder>
-								<Title order={3} mb="md">Gevalideerd Voorstel</Title>
+								<Title order={3} mb="md">
+									Gevalideerd Voorstel
+								</Title>
 
 								{/*
 								  Since main.ts returns a plain string/markdown,
@@ -68,9 +70,9 @@ export default function PCBuilderAgentUI() {
 								<Text
 									component="pre"
 									style={{
-										whiteSpace: 'pre-wrap',
-										fontFamily: 'inherit',
-										lineHeight: 1.6
+										whiteSpace: "pre-wrap",
+										fontFamily: "inherit",
+										lineHeight: 1.6,
 									}}
 								>
 									{buildResult}
