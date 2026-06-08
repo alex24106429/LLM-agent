@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 
 export interface ConfigType {
 	OPENAI_BASE_URL: string;
@@ -10,12 +11,16 @@ export interface ConfigType {
 let fileConfig: Partial<ConfigType> = {};
 
 try {
-	const configPath = new URL("../config.json", import.meta.url);
-	const rawData = fs.readFileSync(configPath, "utf-8");
-	fileConfig = JSON.parse(rawData);
-} catch (_) {
-	// If the file doesn't exist or is invalid JSON, we silently catch the error.
-	// The app will now rely purely on environment variables.
+	// process.cwd() ensures it always looks at the root of your Next.js project
+	const configPath = path.join(process.cwd(), "config.json");
+
+	if (fs.existsSync(configPath)) {
+		const rawData = fs.readFileSync(configPath, "utf-8");
+		fileConfig = JSON.parse(rawData);
+	}
+} catch (error) {
+	// You might want to log this just in case JSON parsing fails
+	console.warn("[Config] Failed to load config.json, relying on env vars.", error);
 }
 
 const config: ConfigType = {

@@ -1,3 +1,5 @@
+"use server";
+
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -21,10 +23,6 @@ const PriceSchema = z.object({
 
 export type ComponentPrice = z.infer<typeof PriceSchema>;
 
-/**
- * The categories of components in a typical PC build.
- * Used to give the LLM a clear vocabulary and to assign per-category fallbacks.
- */
 const COMPONENT_CATEGORIES = [
 	"CPU",
 	"GPU",
@@ -38,7 +36,6 @@ const COMPONENT_CATEGORIES = [
 
 type ComponentCategory = (typeof COMPONENT_CATEGORIES)[number];
 
-// Sensible per-category fallback prices (EUR) if web lookup fails.
 const FALLBACK_PRICES: Record<ComponentCategory, number> = {
 	CPU: 250,
 	GPU: 500,
@@ -50,7 +47,6 @@ const FALLBACK_PRICES: Record<ComponentCategory, number> = {
 	Cooler: 50,
 };
 
-// Sanity ranges per category to discard nonsense prices.
 const PRICE_RANGES: Record<ComponentCategory, [number, number]> = {
 	CPU: [50, 2000],
 	GPU: [100, 5000],
@@ -62,10 +58,59 @@ const PRICE_RANGES: Record<ComponentCategory, [number, number]> = {
 	Cooler: [10, 500],
 };
 
-/**
- * Look up a component's price by searching the web and letting an LLM
- * extract a structured, validated result via a Zod schema.
- */
+// --- HELPER: RETRY API CALLS (EXPONENTIAL BACKOFF) ---
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 10, baseDelayMs = 10000): Promise<T> {
+	let attempt = 0;
+	while (attempt < maxRetries) {
+		try {
+			return await fn();
+		} catch (error: any) {
+			attempt++;
+			const isRateLimit = error?.status === 429 || error?.message?.includes("429");
+			if (isRateLimit && attempt < maxRetries) {
+				const delay = baseDelayMs * Math.pow(2, attempt - 1);
+				console.warn(`[API] 429 Rate limit hit, retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+		}
+	}
+	throw new Error("Max retries reached");
+}
+// -----------------------------------------------------
+
+// --- RATE LIMITER FOR WEB SEARCHES ---
+// ⚡ FIX: Voorkom dat de hele Promise Queue vastloopt als er eentje faalt
+let searchQueue = Promise.resolve<any>(null);
+let lastSearchTime = 0;
+const SEARCH_DELAY_MS = 1500;
+
+async function rateLimitedSearchWebToolExecute(params: { queries: string[] }): Promise<any> {
+	const task = async () => {
+		const now = Date.now();
+		const timeToWait = Math.max(0, SEARCH_DELAY_MS - (now - lastSearchTime));
+
+		if (timeToWait > 0) {
+			await new Promise((r) => setTimeout(r, timeToWait));
+		}
+
+		try {
+			return await searchWebTool.execute(params);
+		} finally {
+			// ⚡ FIX: Zet de tijd pas NADAT de search is afgerond
+			// Hierdoor conflicteert de wachttijd niet meer met interne Brave wachttijden.
+			lastSearchTime = Date.now();
+		}
+	};
+
+	// Voeg taak toe en vang de error af op queue-niveau zodat latere API calls blijven doorwerken
+	const resultPromise = searchQueue.then(task, task);
+	searchQueue = resultPromise.catch(() => {});
+
+	return resultPromise;
+}
+// -------------------------------------
 export async function getComponentPrice(
 	componentName: string,
 	category: ComponentCategory = "GPU",
@@ -74,7 +119,7 @@ export async function getComponentPrice(
 	const [minPrice, maxPrice] = PRICE_RANGES[category];
 
 	try {
-		const result = await searchWebTool.execute({
+		const result = await rateLimitedSearchWebToolExecute({
 			queries: [
 				`${componentName} ${category} price EUR`,
 				`${componentName} prijs kopen nederland`,
@@ -85,27 +130,30 @@ export async function getComponentPrice(
 			return fallback;
 		}
 
-		const completion = await openai.chat.completions.parse({
-			model: "gpt-4o-mini",
-			messages: [
-				{
-					role: "system",
-					content:
-						"You extract the typical current retail price of a PC component from raw web search results. " +
-						"Ignore shipping fees, accessories, used/refurbished listings, and obvious outliers. " +
-						"Convert USD/GBP to EUR with a reasonable approximation if no EUR prices are available.",
-				},
-				{
-					role: "user",
-					content:
-						`Component category: ${category}\n` +
-						`Component: ${componentName}\n\n` +
-						`Search results:\n${result}\n\n` +
-						`Return the typical retail price in EUR.`,
-				},
-			],
-			response_format: zodResponseFormat(PriceSchema, "price"),
-		});
+		// Omwikkeld in een withRetry voor de parse rate limits
+		const completion = await withRetry(() =>
+			openai.chat.completions.parse({
+				model: config.OPENAI_MODEL,
+				messages: [
+					{
+						role: "system",
+						content:
+							"You extract the typical current retail price of a PC component from raw web search results. " +
+							"Ignore shipping fees, accessories, used/refurbished listings, and obvious outliers. " +
+							"Convert USD/GBP to EUR with a reasonable approximation if no EUR prices are available.",
+					},
+					{
+						role: "user",
+						content:
+							`Component category: ${category}\n` +
+							`Component: ${componentName}\n\n` +
+							`Search results:\n${result}\n\n` +
+							`Return the typical retail price in EUR.`,
+					},
+				],
+				response_format: zodResponseFormat(PriceSchema, "price"),
+			})
+		);
 
 		const object = completion.choices[0].message.parsed;
 		if (!object) return fallback;
@@ -147,10 +195,7 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 	},
 ];
 
-
-
-async function buildPcWithBudgetCheck(userPrompt: string) {
-
+export async function buildPcWithBudgetCheck(userPrompt: string) {
 	const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
@@ -177,46 +222,55 @@ async function buildPcWithBudgetCheck(userPrompt: string) {
 		attempts++;
 		console.log(`\n--- Iteratie ${attempts} ---`);
 
-		const response = await openai.chat.completions.create({
-			model: config.OPENAI_MODEL,
-			messages: messages,
-			tools: tools,
-			tool_choice: "auto",
-		});
+		let response;
+		try {
+			// Ook omwikkeld in de retry en try...catch
+			response = await withRetry(() =>
+				openai.chat.completions.create({
+					model: config.OPENAI_MODEL,
+					messages: messages,
+					tools: tools,
+					tool_choice: "auto",
+				})
+			);
+		} catch (error: any) {
+			console.error("[buildPcWithBudgetCheck] Error in OpenAI loop:", error);
+			// Netjes falen in plaats van de server action te laten crashen
+			return "Er is een serverfout opgetreden met de AI (bijv. 429 Too Many Requests). Probeer het later nog eens.";
+		}
 
 		const responseMessage = response.choices[0].message;
 		messages.push(responseMessage);
 
 		if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-			// Resolve all tool calls in parallel for speed.
-			const toolResults = await Promise.all(
-				responseMessage.tool_calls.map(async (toolCall) => {
-					if (
-						toolCall.type === "function" &&
-						toolCall.function.name === "get_component_price"
-					) {
-						const args = JSON.parse(toolCall.function.arguments) as {
-							componentName: string;
-							category?: ComponentCategory;
-						};
-						const category = (args.category ?? "GPU") as ComponentCategory;
-						const price = await getComponentPrice(args.componentName, category);
-						console.log(
-							`>> [${category}] '${args.componentName}' → €${price}`,
-						);
-						return {
-							role: "tool" as const,
-							tool_call_id: toolCall.id,
-							content: price.toString(),
-						};
-					}
-					return {
+			// Belangrijk! Vervang `Promise.all` door sequentieel oplossen met een for...of loop
+			// Dit voorkomt dat je 8 simultane verbindingen opent naar OpenAI
+			const toolResults = [];
+			for (const toolCall of responseMessage.tool_calls) {
+				if (
+					toolCall.type === "function" &&
+					toolCall.function.name === "get_component_price"
+				) {
+					const args = JSON.parse(toolCall.function.arguments) as {
+						componentName: string;
+						category?: ComponentCategory;
+					};
+					const category = (args.category ?? "GPU") as ComponentCategory;
+					const price = await getComponentPrice(args.componentName, category);
+					console.log(`>> [${category}] '${args.componentName}' → €${price}`);
+					toolResults.push({
+						role: "tool" as const,
+						tool_call_id: toolCall.id,
+						content: price.toString(),
+					});
+				} else {
+					toolResults.push({
 						role: "tool" as const,
 						tool_call_id: toolCall.id,
 						content: "Error: unknown tool",
-					};
-				}),
-			);
+					});
+				}
+			}
 
 			for (const tr of toolResults) messages.push(tr);
 		} else {
@@ -227,18 +281,3 @@ async function buildPcWithBudgetCheck(userPrompt: string) {
 
 	return "Kon geen geschikte build samenstellen binnen de toegestane pogingen.";
 }
-
-async function runExperiment() {
-	console.log("Start PC-Builder Agent Onderzoek (OpenAI SDK + TS)");
-
-	const prompt =
-		"Ik wil graag een PC bouwen om Cyberpunk 2077 en Starfield op te spelen in 4K. Mijn totale budget is 1500 euro.";
-	console.log("\n[Gebruiker input]:", prompt);
-
-	console.log("\n[Stap 1] Volledige hardware-selectie, prijs-API bellen & budget loop draaien...");
-	const result = await buildPcWithBudgetCheck(prompt);
-
-	console.log(`\nRESULTAAT:\n${result}`);
-}
-
-runExperiment().catch(console.error);
