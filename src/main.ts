@@ -1,18 +1,79 @@
 import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
 import config from "./config";
+import searchWebTool from "./tools/searchWeb";
 
 const openai = new OpenAI({
 	baseURL: config.OPENAI_BASE_URL,
 	apiKey: config.OPENAI_API_KEY,
 });
 
-function getComponentPrice(componentName: string): number {
-	const nameLower = componentName.toLowerCase();
-	if (nameLower.includes("4090")) return 2000;
-	if (nameLower.includes("4080")) return 1100;
-	if (nameLower.includes("4070")) return 600;
-	if (nameLower.includes("4060")) return 300;
-	return 400;
+const PriceSchema = z.object({
+	price: z
+		.number()
+		.describe("The typical retail price in EUR. Use the median of credible listings."),
+	currency: z.literal("EUR").describe("Always normalize to EUR."),
+	confidence: z
+		.enum(["high", "medium", "low"])
+		.describe("How confident you are based on the number and agreement of sources."),
+});
+
+export type ComponentPrice = z.infer<typeof PriceSchema>;
+
+/**
+ * Look up a component's price by searching the web and letting an LLM
+ * extract a structured, validated result via a Zod schema.
+ */
+export async function getComponentPrice(
+	componentName: string,
+	fallback = 400,
+): Promise<number> {
+	try {
+		const result = await searchWebTool.execute({
+			queries: [
+				`${componentName} price EUR`,
+				`${componentName} prijs kopen nederland`,
+			],
+		});
+
+		if (typeof result !== "string" || result.startsWith("Error")) {
+			return fallback;
+		}
+
+		// Use OpenAI's native structured outputs with a Zod schema.
+		const completion = await openai.chat.completions.parse({
+			model: "gpt-4o-mini",
+			messages: [
+				{
+					role: "system",
+					content:
+						"You extract the typical current retail price of a PC component from raw web search results. " +
+						"Ignore shipping fees, accessories, used/refurbished listings, and obvious outliers. " +
+						"Convert USD/GBP to EUR with a reasonable approximation if no EUR prices are available.",
+				},
+				{
+					role: "user",
+					content:
+						`Component: ${componentName}\n\n` +
+						`Search results:\n${result}\n\n` +
+						`Return the typical retail price in EUR.`,
+				},
+			],
+			response_format: zodResponseFormat(PriceSchema, "price"),
+		});
+
+		const object = completion.choices[0].message.parsed;
+		if (!object) return fallback;
+
+		// Sanity-check the range.
+		if (object.price < 50 || object.price > 10000) return fallback;
+
+		return object.price;
+	} catch (e) {
+		console.error("[getComponentPrice] failed:", e);
+		return fallback;
+	}
 }
 
 const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -47,7 +108,6 @@ async function selectGpuWithBudgetCheck(userPrompt: string) {
 	];
 
 	let attempts = 0;
-
 	console.log(`\n[Start Loop] GPU selecteren en budget controleren...`);
 
 	while (attempts < 5) {
@@ -64,12 +124,13 @@ async function selectGpuWithBudgetCheck(userPrompt: string) {
 		const responseMessage = response.choices[0].message;
 		messages.push(responseMessage);
 
-		if (responseMessage.tool_calls) {
+		if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
 			for (const toolCall of responseMessage.tool_calls) {
 				if (toolCall.type === "function" && toolCall.function.name === "get_component_price") {
 					const args = JSON.parse(toolCall.function.arguments);
 
-					const price = getComponentPrice(args.componentName);
+					// FIX: await the async price lookup.
+					const price = await getComponentPrice(args.componentName);
 					console.log(`>> LLM koos GPU: '${args.componentName}'. API checkt prijs: €${price}`);
 
 					messages.push({
@@ -91,7 +152,8 @@ async function selectGpuWithBudgetCheck(userPrompt: string) {
 async function runExperiment() {
 	console.log("Start PC-Builder Agent Onderzoek (OpenAI SDK + TS)");
 
-	const prompt = "Ik wil graag een PC bouwen om Cyberpunk 2077 en Starfield op te spelen in 4K. Mijn totale budget is 1500 euro.";
+	const prompt =
+		"Ik wil graag een PC bouwen om Cyberpunk 2077 en Starfield op te spelen in 4K. Mijn totale budget is 1500 euro.";
 	console.log("\n[Gebruiker input]:", prompt);
 
 	console.log("\n[Stap 1] Hardware selecteren, prijs API bellen & budget loop draaien...");
