@@ -7,8 +7,6 @@ import PerformanceReportCard, { type ExpertReview } from "@/components/Performan
 import UserRequirementsCard from "@/components/UserRequirementsCard";
 import ValidatedProposalCard, { type ValidatedProposalData } from "@/components/ValidatedProposalCard";
 
-const userPrompt = "Ik wil een compacte PC om hoofdzakelijk Cyberpunk 2077 en CS2 op 1440p te spelen. Budget: €1200";
-
 const timelineSteps: TimelineStep[] = [
 	{
 		icon: "check",

@@ -1,5 +1,4 @@
 import config from "../config";
-import type { tool } from "../toolManager";
 
 // --- Types ---
 
@@ -141,4 +140,4 @@ export default {
 			return `Error: Failed to fetch search results. Details: ${e.message}`;
 		}
 	},
-} satisfies tool;
+};
