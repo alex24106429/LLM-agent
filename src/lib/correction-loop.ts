@@ -6,7 +6,12 @@ import { extractPricesFromSearch, fixCompatibilityHw, selectCheaperHardware } fr
 
 const MAX_LOOP_ATTEMPTS = 5;
 
-export async function runSelfCorrectionLoop(hardware: HardwareSelection, budget: number, emit: (event: AgentEvent) => void, stepCounter: { current: number }): Promise<{ hardware: HardwareSelection; priceQuote: PriceQuote } | null> {
+export async function runSelfCorrectionLoop(
+	hardware: HardwareSelection,
+	budget: number,
+	emit: (event: AgentEvent) => void,
+	stepCounter: { current: number },
+): Promise<{ hardware: HardwareSelection; priceQuote: PriceQuote } | null> {
 	let priceQuote: PriceQuote | null = null;
 
 	for (let attempt = 0; attempt < MAX_LOOP_ATTEMPTS; attempt++) {

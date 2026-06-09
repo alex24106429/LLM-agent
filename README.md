@@ -13,12 +13,12 @@ Computer Hardware Agent for System Selection & Integration Service
    ```bash
    git clone https://github.com/alex24106429/LLM-agent
    ```
-2. **Create your config file:**
-   Copy the example configuration file to create your own:
+2. **Create your environment file:**
+   Copy the example environment file to create your own:
    ```bash
-   cp config.example.json config.json
+   cp .env.example .env
    ```
-3. **Configure your API keys** in `config.json` (see Configuration below).
+3. **Configure your API keys** in `.env` (see Configuration below).
 
 ## Install Dependencies
 
@@ -36,32 +36,28 @@ npm run dev
 
 ## Configuration (Providers & Models)
 
-The agent reads from `config.json`. You can easily switch between API providers by modifying the `OPENAI_BASE_URL` and `OPENAI_MODEL` fields.
+The agent reads all configuration from environment variables (via `.env`). You can easily switch between API providers by modifying the variables in `.env`.
 
 **1. Using Gemini (Has a free tier)**
 
 [Get your free API key here](https://aistudio.google.com/api-keys)
 
-```json
-{
-	"OPENAI_BASE_URL": "https://generativelanguage.googleapis.com/v1beta/openai/",
-	"OPENAI_MODEL": "gemini-3.5-flash",
-	"OPENAI_API_KEY": "...",
-	"BRAVE_API_KEY": "..."
-}
+```env
+OPENAI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
+OPENAI_MODEL="gemini-3.5-flash"
+OPENAI_API_KEY="..."
+BRAVE_API_KEY="..."
 ```
 
 **2. Using OpenRouter**
 
 [Find free models here](https://openrouter.ai/models?output_modalities=text&max_price=0&order=most-popular)
 
-```json
-{
-	"OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
-	"OPENAI_MODEL": "google/gemma-4-26b-a4b-it:free",
-	"OPENAI_API_KEY": "...",
-	"BRAVE_API_KEY": "..."
-}
+```env
+OPENAI_BASE_URL="https://openrouter.ai/api/v1"
+OPENAI_MODEL="google/gemma-4-26b-a4b-it:free"
+OPENAI_API_KEY="..."
+BRAVE_API_KEY="..."
 ```
 
 **3. Using Local Models (llama.cpp recommended)**
@@ -77,15 +73,11 @@ Run llama.cpp server:
 llama-server -c 16384 -m "Qwen3.5-4B-Q4_K_M.gguf" -np 1 --no-mmap -ctk q8_0 -ctv q8_0
 ```
 
-Example config:
-
-```json
-{
-	"OPENAI_BASE_URL": "http://localhost:8080/v1",
-	"OPENAI_MODEL": "",
-	"OPENAI_API_KEY": "not-needed",
-	"BRAVE_API_KEY": "..."
-}
+```env
+OPENAI_BASE_URL="http://localhost:8080/v1"
+OPENAI_MODEL=""
+OPENAI_API_KEY="not-needed"
+BRAVE_API_KEY="..."
 ```
 
 

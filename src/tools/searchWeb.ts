@@ -104,7 +104,7 @@ export default {
 		const apiKey = config.BRAVE_API_KEY;
 
 		if (!apiKey) {
-			return "Error: BRAVE_API_KEY is missing in config.json or environment variables. Cannot search.";
+			return "Error: BRAVE_API_KEY is missing in .env or environment variables. Cannot search.";
 		}
 
 		const queries = args.queries;

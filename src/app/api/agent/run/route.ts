@@ -2,8 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { runAgent } from "@/lib/agent-runner";
 import type { AgentEvent } from "@/schemas";
 
-export const runtime = "edge";
-
 export async function POST(request: NextRequest) {
 	let userPrompt: string;
 	try {
