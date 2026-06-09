@@ -40,7 +40,7 @@ export async function runAgent(userPrompt: string, onEvent: (event: AgentEvent) 
 
 	let hardware: HardwareSelection;
 	try {
-		hardware = await selectCoreHardware(userPrompt);
+		hardware = await selectCoreHardware(userPrompt, budget);
 	} catch (err) {
 		emit({ type: "error", message: `Fout bij hardware selectie: ${err instanceof Error ? err.message : String(err)}` });
 		return;

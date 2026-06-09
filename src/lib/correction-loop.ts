@@ -4,7 +4,8 @@ import { calculateTotalPrice, checkCompatibility, isWithinBudget } from "./compa
 import { buildSearchQueries, formatPrice } from "./helpers";
 import { extractPricesFromSearch, fixCompatibilityHw, selectCheaperHardware } from "./llm-calls";
 
-const MAX_LOOP_ATTEMPTS = 5;
+const MAX_LOOP_ATTEMPTS = 3;
+const MIN_PRICE_REDUCTION_RATIO = 0.1;
 
 export async function runSelfCorrectionLoop(
 	hardware: HardwareSelection,
@@ -13,6 +14,7 @@ export async function runSelfCorrectionLoop(
 	stepCounter: { current: number },
 ): Promise<{ hardware: HardwareSelection; priceQuote: PriceQuote } | null> {
 	let priceQuote: PriceQuote | null = null;
+	let previousTotalPrice = Infinity;
 
 	for (let attempt = 0; attempt < MAX_LOOP_ATTEMPTS; attempt++) {
 		const priceStepTitle = `Stap ${++stepCounter.current}: Prijzen Zoeken`;
@@ -44,7 +46,12 @@ export async function runSelfCorrectionLoop(
 			},
 		});
 
-		if (!withinBudget && attempt < MAX_LOOP_ATTEMPTS - 1) {
+		// Check if we're making meaningful progress
+		const priceReduction = previousTotalPrice - totalPrice;
+		const reductionRatio = previousTotalPrice === Infinity ? 1 : priceReduction / previousTotalPrice;
+		const progressIsStalling = attempt > 0 && reductionRatio < MIN_PRICE_REDUCTION_RATIO && !withinBudget;
+
+		if (!withinBudget && attempt < MAX_LOOP_ATTEMPTS - 1 && !progressIsStalling) {
 			emit({
 				type: "step",
 				step: {
@@ -72,7 +79,23 @@ export async function runSelfCorrectionLoop(
 				emit({ type: "error", message: `Fout bij budget herstel: ${err instanceof Error ? err.message : String(err)}` });
 				return null;
 			}
+			previousTotalPrice = totalPrice;
 			continue;
+		}
+
+		// If progress is stalling and still over budget, emit a warning but try one last compatibility check
+		if (progressIsStalling) {
+			emit({
+				type: "step",
+				step: {
+					icon: "alert",
+					title: `Stap ${++stepCounter.current}: Budgetlimiet`,
+					text: `Het budget (€${budget}) is te laag voor de gewenste prestaties. Laagst haalbare prijs: ${formatPrice(totalPrice)}. Hardware wordt toch voorgesteld.`,
+					badge: { color: "yellow", text: "Budget te laag — beste poging" },
+					lineVariant: "solid",
+				},
+			});
+			// Fall through to compatibility check and return best-effort result
 		}
 
 		const compatResult = checkCompatibility(hardware);

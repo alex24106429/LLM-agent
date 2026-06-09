@@ -27,7 +27,16 @@ export async function extractBudget(prompt: string): Promise<number> {
 	return parsed.budget;
 }
 
-export async function selectCoreHardware(prompt: string): Promise<HardwareSelection> {
+export async function selectCoreHardware(prompt: string, budget?: number): Promise<HardwareSelection> {
+	const budgetGuidance = budget
+		? `\n\nBUDGET: €${budget} — ALLE onderdelen moeten binnen dit budget passen (inclusief verzendkosten).\n` +
+			`- Als budget < €500: kies een DDR4-platform (AM4/LGA1700), 8GB DDR4, een goedkope M.2 SSD (<+512GB), en een budget PSU/case.\n` +
+			`- Als budget €500-€800: overweeg 16 GB DDR5 maar bezuinig op CPU/GPU.\n` +
+			`- Als budget < €400: overweeg een build met tweedehands componenten of een APU (geen losse GPU) om binnen budget te blijven.\n` +
+			`- Houd €50-€100 over voor een behuizing, voeding en koeler.\n` +
+			`- Het totaal van ALLE componenten mag niet boven €${budget} uitkomen.\n`
+		: "\n";
+
 	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
@@ -40,13 +49,14 @@ export async function selectCoreHardware(prompt: string): Promise<HardwareSelect
 					"- Kies een CPU en GPU die goed bij de gewenste games en resolutie passen.\n" +
 					"- De GPU mag maximaal 45% van het totale budget kosten.\n" +
 					"- Kies een compatibel moederbord (juiste socket voor de CPU).\n" +
-					"- Kies voldoende en snel RAM (32GB DDR5 aanbevolen voor gaming).\n" +
-					"- Kies een snelle M.2 NVMe SSD (minimaal 1TB).\n" +
+					"- Kies voldoende en snel RAM (16GB DDR5 aanbevolen voor gaming), maar voor budget-builds 16GB DDR4.\n" +
+					"- Kies een snelle M.2 NVMe SSD (minimaal 1TB), maar voor budget-builds 256-512GB.\n" +
 					"- Kies een betrouwbare voeding met voldoende wattage (CPU TDP + GPU TDP + 100W marge).\n" +
 					"- Kies een behuizing die past bij het moederbord form-factor en de GPU-lengte.\n" +
 					"- Kies een goede luchtkoeler of AIO die past bij de CPU.\n" +
 					"- Gebruik actuele, realistische onderdelen uit 2025-2026.\n" +
-					"- Vul voor elk onderdeel zoveel mogelijk velden in (socket, tdp, formFactor, wattage, type, capacity).\n\n" +
+					"- Vul voor elk onderdeel zoveel mogelijk velden in (socket, tdp, formFactor, wattage, type, capacity).\n" +
+					budgetGuidance +
 					resources,
 			},
 			{
@@ -65,6 +75,24 @@ export async function selectCoreHardware(prompt: string): Promise<HardwareSelect
 }
 
 export async function selectCheaperHardware(budget: number, currentHw: HardwareSelection, overshoot: number): Promise<HardwareSelection> {
+	const urgencyLevel = overshoot > budget * 0.5 ? "CRITICAL" : overshoot > budget * 0.25 ? "HIGH" : "MODERATE";
+
+	const aggressivePrompt =
+		urgencyLevel === "CRITICAL"
+			? "Dit ontwerp is VEEL TE DUUR. Je moet drastisch bezuinigen:\n" +
+				"- Kies een APU (CPU met ingebouwde grafische chip, zoals AMD Ryzen 5 8600G / Ryzen 5 5600G) — GEEN losse GPU.\n" +
+				"- Of kies een goedkope tweedehands GPU (€50-€100) en budget-CPU zoals Intel i3-12100F of AMD Ryzen 5 4500.\n" +
+				"- Gebruik DDR4-platform (AM4 of LGA1700) met 16 GB of zelfs 8 GB DDR4.\n" +
+				"- Gebruik een 256GB of 512GB M.2 SSD, geen 1TB.\n" +
+				"- Kies de goedkoopste compatibele behuizing, voeding (400-500W) en koeler.\n"
+			: urgencyLevel === "HIGH"
+				? "Dit ontwerp is te duur. Bezuinig substantieel:\n" +
+					"- Downgrade de GPU naar een goedkoper model (minstens 2 niveaus lager).\n" +
+					"- Als het budget < €500: overweeg DDR4-platform en 8GB DDR4.\n" +
+					"- Kies een goedkopere behuizing, 500W-voeding en budget luchtkoeler.\n" +
+					"- Verklein SSD naar 256GB of 512GB of 1TB zonder DRAM.\n"
+				: "Kies iets goedkopere alternatieven voor de duurste componenten.\n";
+
 	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
@@ -73,8 +101,11 @@ export async function selectCheaperHardware(budget: number, currentHw: HardwareS
 				content:
 					"Je bent een PC-builder expert. Het huidige ontwerp is te duur. Selecteer goedkopere alternatieven om binnen het budget te blijven. " +
 					`Datum: ${new Date().toString()}\n` +
-					"Probeer de GPU of het moederbord te downgraden, of kies een goedkopere behuizing/voeding. " +
+					aggressivePrompt +
 					"Behoud dezelfde CPU-socket voor compatibiliteit tenzij je ook de CPU wijzigt.\n" +
+					"Het is absoluut noodzakelijk dat het totaal van ALLE componenten onder €" +
+					budget +
+					" blijft!\n" +
 					resources,
 			},
 			{
