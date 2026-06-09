@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "pc-builder-agent",
+	"name": "llm-agent",
 	"compatibility_flags": ["nodejs_compat"],
 	"compatibility_date": "2024-12-30",
 	"assets": {
