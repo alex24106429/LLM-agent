@@ -1,8 +1,9 @@
+export default `
 # Executive Summary
 
 By mid-2026 the DIY PC market is defined by fierce competition among CPU/GPU vendors, tight component supplies, and evolving consumer priorities. **Intel**’s latest desktop CPUs are the *Arrow Lake* “Core Ultra 200” series (Arrow Lake-S) introduced Oct 2024, with a refresh on the horizon; **AMD** has solidified gains with its *Ryzen 9000* (Zen 5) desktop CPUs and new 3D-VCache models (e.g. Ryzen 7 9850X3D). **NVIDIA** leads discrete GPUs with the RTX 50 (“Blackwell”) series launched in early 2025, while **AMD**’s latest GPUs are the RDNA 4–based Radeon RX 9070 and 9070 XT (Mar 2025). Market-share data show AMD holding roughly 36% of desktop CPU shipments (Intel ~64%), whereas NVIDIA dominates discrete GPUs (~94% vs AMD’s ~6%).
 
-The broader component ecosystem features current-gen **chipsets and form factors** (DDR5 memory, ATX3.1 PSUs, M.2 NVMe storage, mini-ITX/SFF chassis), with DDR5 adoption widespread and DDR6 only on the horizon. Supply chains remain strained: an **IDC** analysis warns of a sustained DRAM/NAND shortage driven by AI data-center demand, and foundry capacity will likely stay tight as **TSMC** ramps to meet AI-chip demand. These pressures have kept memory prices high into 2026, squeezing component availability and raising GPU prices (esp. >16 GB cards) by ~10–20%. 
+The broader component ecosystem features current-gen **chipsets and form factors** (DDR5 memory, ATX3.1 PSUs, M.2 NVMe storage, mini-ITX/SFF chassis), with DDR5 adoption widespread and DDR6 only on the horizon. Supply chains remain strained: an **IDC** analysis warns of a sustained DRAM/NAND shortage driven by AI data-center demand, and foundry capacity will likely stay tight as **TSMC** ramps to meet AI-chip demand. These pressures have kept memory prices high into 2026, squeezing component availability and raising GPU prices (esp. >16 GB cards) by ~10–20%.
 
 In performance trends, both vendors push hardware-based AI and ray-tracing: NVIDIA’s RTX50 cards use 4th-gen Ray-Tracing cores and 5th-gen Tensor cores (e.g. DLSS 4, Multi Frame Generation), while AMD’s RDNA 4 GPUs include 3rd-gen ray accelerators and 2nd-gen AI accelerators enabling FSR 4 ML upscaling. Hybrid builds (mini-PCs, custom loops, SFF cases) remain popular among enthusiasts. On software, Windows 11 (with Copilot/AI features) is current; AMD and NVIDIA both expand AI-framework support (AMD’s ROCm now covers Ryzen AI on Windows and Linux).
 
@@ -49,9 +50,9 @@ In performance trends, both vendors push hardware-based AI and ray-tracing: NVID
 
 - **Custom Loops and Enthusiast Builds** – Water-cooling custom loops are niche but steady. More builders are exploring custom loops for aesthetic or thermal reasons on high-end CPUs/GPUs. RGB lighting and moddable cases (Removable PCIe risers, tempered glass panels) cater to these users. Meanwhile, manufacturers produce user-serviceable parts (modular GPU backs/ connectors) for bespoke designs.
 
-- **Modularity** – A new trend is modular cases (where storage, PSU, and cable routing are plug-and-play) to simplify building. Vertical GPU mounts, flip cases, and tool-free designs are more common. Some brands (e.g. Fractal, Thermaltake) advertise “easier build” kits. For retailers, highlighting tool-less and cable management features is a selling point.  
+- **Modularity** – A new trend is modular cases (where storage, PSU, and cable routing are plug-and-play) to simplify building. Vertical GPU mounts, flip cases, and tool-free designs are more common. Some brands (e.g. Fractal, Thermaltake) advertise “easier build” kits. For retailers, highlighting tool-less and cable management features is a selling point.
 
-- **All-in-One PCs and Mini-PCs** – Vendors also target small form factors: e.g. *Intel NUC* mini-PCs with Core Ultra processors, *AMD’s Ryzen AI Halo* (mini-PC for developers), and *Acer Veriton Mini* workstations with Ryzen AI/Intel CPUs (launched May 2026). These compact turnkey PCs show the demand for DIY-like performance in small footprint. 
+- **All-in-One PCs and Mini-PCs** – Vendors also target small form factors: e.g. *Intel NUC* mini-PCs with Core Ultra processors, *AMD’s Ryzen AI Halo* (mini-PC for developers), and *Acer Veriton Mini* workstations with Ryzen AI/Intel CPUs (launched May 2026). These compact turnkey PCs show the demand for DIY-like performance in small footprint.
 
 ## Software/OS Ecosystem
 
@@ -99,7 +100,7 @@ Below are example PC build configurations at three budget tiers. Components are 
 
 3. **High End (~$3000)** – Enthusiast 4K gaming or content creation.
    - **CPU:** AMD Ryzen 9 7950X3D (16C/32T, X3D) or Intel Core Ultra 9 295K (14C/20T). (Latest flagships, e.g. 9850X3D/7950X3D or Intel’s top Core Ultra.)
-   - **GPU:** Nvidia RTX 5090 (32GB) or AMD Radeon RX 9070 XT (16GB) plus DLSS/FSR. 
+   - **GPU:** Nvidia RTX 5090 (32GB) or AMD Radeon RX 9070 XT (16GB) plus DLSS/FSR.
    - **Motherboard:** High-end chipset (ASUS ROG, Gigabyte Aorus, etc.), robust VRMs.
    - **RAM:** 32–64 GB DDR5-6400 (overclock kit).
    - **Storage:** 2–4 TB NVMe Gen4 or Gen5 SSD.
@@ -110,3 +111,42 @@ Below are example PC build configurations at three budget tiers. Components are 
 **Build Guidance:** Always check the latest BIOS/firmware for CPU support (especially on AM5 systems preparing for Ryzen 9000). Use reputable PSU and cooling (Tom’s notes ATX3.1 PSUs with native GPU power connectors for newer GPUs). For retailers: bundle offerings with SSD+RAM combos to ease sourcing.
 
 Prioritize DDR5 and PCIe 5.0 if budget permits, as they will last for next-gen CPUs/GPUs. Balance gaming vs productivity needs: e.g. invest in a high-cache CPU (X3D) for gaming, more cores (or Intel) for content creation. Watch component prices: stock up on deals in a quarter of memory shortages. Consider SFF if desk space is tight, but ensure cooling adequacy. Use open-source tools (benchmarking suites) to validate performance gains (FSR4, DLSS4 effects).
+
+If you are building a PC right now (mid-2026), RAM is one of the most disproportionately expensive components in your budget. To optimize your spending and performance, here is the direct, actionable hardware and buying advice extracted from the current market conditions.
+
+---
+
+### 1. Choose Your Platform (DDR4 vs. DDR5)
+
+Your choice of CPU and motherboard dictates your RAM type. Because of the current price premium on memory, this decision heavily impacts your overall budget.
+
+*   **DDR5 Platforms (AMD AM5 / Intel LGA-1851):**
+    *   *Applicable CPUs:* AMD Ryzen 7000/9000 series, Intel Arrow Lake (Core Ultra 200 series).
+    *   *The Catch:* These platforms **require** DDR5. You cannot use cheaper DDR4 memory. If you choose these, you must budget at least $160 to $350+ solely for RAM.
+*   **DDR4 Platforms (AMD AM4 / Intel LGA-1700):**
+    *   *Applicable CPUs:* AMD Ryzen 5000 series (e.g., 5700X3D), Intel 12th/13th/14th Gen.
+    *   *The Benefit:* These motherboards support DDR4. While DDR4 prices are also inflated compared to last year, a 32GB DDR4 kit ($150–$180) is still roughly half the price of a standard 32GB DDR5 kit.
+    *   *Recommendation:* For strict budget builds, choosing a high-performance DDR4 platform like AMD's AM4 with a 3D V-Cache processor (e.g., Ryzen 7 5700X3D) allows you to redirect $150–$200 of savings directly into a better GPU.
+
+---
+
+### 2. Identify the Best "Sweet Spot" Specs
+
+If you are buying memory, these are the target specifications for performance and stability:
+
+*   **For DDR5 Builds:**
+    *   **The Target:** **32GB (2x16GB) DDR5-6000 with CL30 or CL32 timings**. This is the optimal configuration for modern CPUs, particularly AMD Ryzen, which experiences performance losses with slower or higher-latency kits.
+    *   **Current Cost:** Expect to pay **$350 to $440** for this configuration.
+    *   **What to Avoid:** Avoid 4-stick configurations (4x8GB or 4x16GB). Modern DDR5 memory controllers struggle to run four sticks at high speeds, often forcing the system to downclock to unstable or very slow speeds. Stick to a 2-stick kit.
+*   **For DDR4 Builds:**
+    *   **The Target:** **32GB (2x16GB) DDR4-3200 CL16** or **DDR4-3600 CL18**.
+    *   **Current Cost:** Expect to pay **$150 to $180**.
+
+---
+
+### 3. Cost-Saving Strategies for Current Builders
+
+Instead of forcing a 32GB DDR5 kit into a tight budget, buy a **16GB (2x8GB) DDR5-4800 or 5200 kit** for roughly **$160**.
+*   *Why:* This keeps your initial build cost manageable. 16GB is still sufficient for most modern games if you close demanding background applications (like web browsers or editing software) while gaming.
+*   *The Upgrade Path:* You can swap this kit out for a faster 32GB kit in late 2027 or 2028 when production capacity recovers and prices are projected to normalize.
+`;

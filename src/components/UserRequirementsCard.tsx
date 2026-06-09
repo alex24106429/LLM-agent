@@ -5,17 +5,26 @@ import SectionTitle from "./SectionTitle";
 
 interface UserRequirementsCardProps {
 	onSubmit: (prompt: string) => void;
+	isLoading?: boolean;
 }
 
-export default function UserRequirementsCard({ onSubmit }: UserRequirementsCardProps) {
+export default function UserRequirementsCard({ onSubmit, isLoading = false }: UserRequirementsCardProps) {
 	const [prompt, setPrompt] = useState("");
 
 	return (
 		<Paper withBorder p="md" radius="md">
 			<SectionTitle icon={<IconCoins size={20} color="gray" />}>Gebruikerswensen</SectionTitle>
 			<Stack gap="sm">
-				<Textarea label="Doelstelling / Prompt" placeholder="Ik wil een stille PC om Cyberpunk te spelen op 1440p..." value={prompt} onChange={(e) => setPrompt(e.currentTarget.value)} />
-				<Button onClick={() => onSubmit(prompt)}>Start Agent</Button>
+				<Textarea
+					label="Doelstelling / Prompt"
+					placeholder="Ik wil een stille PC om Cyberpunk te spelen op 1440p..."
+					value={prompt}
+					onChange={(e) => setPrompt(e.currentTarget.value)}
+					disabled={isLoading}
+				/>
+				<Button onClick={() => onSubmit(prompt)} loading={isLoading} disabled={!prompt.trim()}>
+					{isLoading ? "Agent Bezig..." : "Start Agent"}
+				</Button>
 			</Stack>
 		</Paper>
 	);

@@ -1,6 +1,7 @@
 import config from "../config";
 
 // --- Types ---
+
 type BraveResult = {
 	title: string;
 	url: string;
@@ -14,11 +15,13 @@ type BraveResponse = {
 };
 
 // --- Configuration Defaults ---
+
 const BRAVE_BASE_URL = "https://api.search.brave.com/res/v1/web/search";
 const MAX_TOTAL_RESULTS = 10;
-const REQUEST_DELAY = 1100; // ⚡ VERHOOGD naar 1100ms om Brave's 1 req/sec limiet te respecteren
+const REQUEST_DELAY = 1000;
 
 // --- Helper Functions ---
+
 function formatSearchResultsForLLM(searchResults: BraveResult[]) {
 	return searchResults
 		.map((res, i) => {
@@ -72,6 +75,7 @@ async function performSingleSearch(query: string, resultsPerQuery: number, apiKe
 }
 
 // --- Tool Export ---
+
 export default {
 	definition: {
 		type: "function",
@@ -96,10 +100,11 @@ export default {
 		},
 	},
 	execute: async (args: { queries: string[] }) => {
-		const apiKey = config.BRAVE_API_KEY || process.env.BRAVE_API_KEY;
+		// Access config safely
+		const apiKey = config.BRAVE_API_KEY;
 
 		if (!apiKey) {
-			return "Error: BRAVE_API_KEY is missing in config.json or environment variables. Tell the user to configure it.";
+			return "Error: BRAVE_API_KEY is missing in config.json or environment variables. Cannot search.";
 		}
 
 		const queries = args.queries;
@@ -129,10 +134,10 @@ export default {
 			}
 
 			return "No search results found or the API response was malformed.";
-		} catch (e: unknown) {
+			// biome-ignore lint/suspicious/noExplicitAny: any error can occour
+		} catch (e: any) {
 			console.error("[System] Failed to fetch from Brave Search API:", e);
-			const err = e as { message?: string };
-			return `Error: Failed to fetch search results. Details: ${err.message ?? "unknown error"}`;
+			return `Error: Failed to fetch search results. Details: ${e.message}`;
 		}
 	},
 };

@@ -1,4 +1,4 @@
-import { Badge, Group, Paper, Progress, Table, Text } from "@mantine/core";
+import { Badge, Group, Loader, Paper, Progress, Skeleton, Table, Text } from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
 import PartTableRow, { type PartData } from "./PartTableRow";
 import SectionTitle from "./SectionTitle";
@@ -10,8 +10,41 @@ export interface ValidatedProposalData {
 	budgetRemaining: string;
 }
 
-export default function ValidatedProposalCard({ data }: { data: ValidatedProposalData }) {
+export default function ValidatedProposalCard({ data, isLoading = false }: { data: ValidatedProposalData | null; isLoading?: boolean }) {
+	// Loading state: show skeleton
+	if (isLoading && !data) {
+		return (
+			<Paper withBorder p="md" radius="md">
+				<Group justify="space-between" mb="xs">
+					<SectionTitle mb="0" icon={<Loader size={18} color="green" />}>
+						Gevalideerd Voorstel
+					</SectionTitle>
+				</Group>
+				<Skeleton height={20} mb="md" />
+				<Skeleton height={20} mb="md" />
+				<Skeleton height={120} />
+			</Paper>
+		);
+	}
+
+	// Empty state: no data yet
+	if (!data) {
+		return (
+			<Paper withBorder p="md" radius="md">
+				<Group justify="space-between" mb="xs">
+					<SectionTitle mb="0" icon={<IconCheck size={20} color="green" />}>
+						Gevalideerd Voorstel
+					</SectionTitle>
+				</Group>
+				<Text size="sm" c="dimmed" ta="center" py="xl">
+					Start de agent om een hardwarevoorstel te genereren.
+				</Text>
+			</Paper>
+		);
+	}
+
 	const { partsList, totalPrice, budgetPercentage, budgetRemaining } = data;
+	const isOverBudget = budgetRemaining.includes("tekort");
 
 	return (
 		<Paper withBorder p="md" radius="md">
@@ -19,7 +52,7 @@ export default function ValidatedProposalCard({ data }: { data: ValidatedProposa
 				<SectionTitle mb="0" icon={<IconCheck size={20} color="green" />}>
 					Gevalideerd Voorstel
 				</SectionTitle>
-				<Badge color="green">Gevalideerd & Binnen Budget</Badge>
+				<Badge color={isOverBudget ? "red" : "green"}>{isOverBudget ? "Over Budget" : "Gevalideerd & Binnen Budget"}</Badge>
 			</Group>
 
 			<Group mb="md" grow>
@@ -35,9 +68,9 @@ export default function ValidatedProposalCard({ data }: { data: ValidatedProposa
 					<Text size="xs" c="dimmed">
 						Budget Marge
 					</Text>
-					<Progress value={budgetPercentage} color="teal" size="sm" mt={5} />
+					<Progress value={Math.min(budgetPercentage, 100)} color={isOverBudget ? "red" : "teal"} size="sm" mt={5} />
 					<Text size="xs" ta="right" mt={2}>
-						{budgetRemaining} over
+						{budgetRemaining}
 					</Text>
 				</div>
 			</Group>
@@ -48,7 +81,6 @@ export default function ValidatedProposalCard({ data }: { data: ValidatedProposa
 						<Table.Th>Type</Table.Th>
 						<Table.Th>Onderdeel</Table.Th>
 						<Table.Th style={{ textAlign: "right" }}>Prijs</Table.Th>
-						<Table.Th style={{ textAlign: "right" }}>Winkel</Table.Th>
 					</Table.Tr>
 				</Table.Thead>
 				<Table.Tbody>

@@ -1,56 +1,88 @@
 import { z } from "zod";
 
-export const BadgeSchema = z.object({
-	color: z.string(),
-	text: z.string(),
-});
-export type Badge = z.infer<typeof BadgeSchema>;
-
-export const TimelineStepSchema = z.object({
-	icon: z.enum(["check", "cpu", "alert", "rotate"]),
-	title: z.string(),
-	text: z.string(),
-	badge: BadgeSchema.optional(),
-	lineVariant: z.enum(["solid"]).optional(),
-});
-export type TimelineStep = z.infer<typeof TimelineStepSchema>;
-
-export const GamePerformanceDataSchema = z.object({
+export const HardwareComponentSchema = z.object({
 	name: z.string(),
-	fps: z.string(),
-	value: z.number(),
-	color: z.string(),
-	fpsColor: z.string(),
+	socket: z.string().nullable().describe("CPU socket (e.g. AM5, LGA1700) — CPU and motherboard only"),
+	tdp: z.number().nullable().describe("Thermal Design Power in watts"),
+	formFactor: z.string().nullable().describe("Form factor (e.g. ATX, mATX) — motherboard and case only"),
+	maxGpuLength: z.number().nullable().describe("Max GPU clearance in mm — case only"),
+	type: z.string().nullable().describe("RAM type (DDR4/DDR5) or storage type (M.2 NVMe, SATA SSD)"),
+	capacity: z.string().nullable().describe("Capacity (e.g. 32GB, 2TB) — RAM and storage only"),
+	wattage: z.number().nullable().describe("Wattage rating — PSU only"),
 });
-export type GamePerformanceData = z.infer<typeof GamePerformanceDataSchema>;
+export type HardwareComponent = z.infer<typeof HardwareComponentSchema>;
 
-export const ExpertReviewSchema = z.object({
-	sentiment: z.string(),
-	text: z.string(),
+export const HardwareSelectionSchema = z.object({
+	cpu: HardwareComponentSchema,
+	gpu: HardwareComponentSchema,
+	motherboard: HardwareComponentSchema,
+	ram: HardwareComponentSchema,
+	storage: HardwareComponentSchema,
+	cooler: HardwareComponentSchema,
+	psu: HardwareComponentSchema,
+	case: HardwareComponentSchema,
 });
-export type ExpertReview = z.infer<typeof ExpertReviewSchema>;
+export type HardwareSelection = z.infer<typeof HardwareSelectionSchema>;
 
-export const PartDataSchema = z.object({
-	type: z.string(),
-	color: z.string(),
+export const ReviewSummarySchema = z.object({
+	sentiment: z.string().describe("Overall expert sentiment, e.g. 'Overwegend Positief'"),
+	summary: z.string().describe("Concise summary of expert and user reviews for the selected parts"),
+});
+export type ReviewSummary = z.infer<typeof ReviewSummarySchema>;
+
+export const GameFpsEstimateSchema = z.object({
 	name: z.string(),
-	price: z.string(),
-	shop: z.string(),
+	fps: z.number().describe("Estimated average FPS"),
+	settings: z.string().describe("Resolution and quality settings used for the estimate"),
 });
-export type PartData = z.infer<typeof PartDataSchema>;
+export type GameFpsEstimate = z.infer<typeof GameFpsEstimateSchema>;
 
-export const ValidatedProposalDataSchema = z.object({
-	partsList: z.array(PartDataSchema),
-	totalPrice: z.string(),
-	budgetPercentage: z.number(),
-	budgetRemaining: z.string(),
+export const PerformanceEstimatesSchema = z.object({
+	games: z.array(GameFpsEstimateSchema),
 });
-export type ValidatedProposalData = z.infer<typeof ValidatedProposalDataSchema>;
+export type PerformanceEstimates = z.infer<typeof PerformanceEstimatesSchema>;
 
-export const PageDataSchema = z.object({
-	timelineSteps: z.array(TimelineStepSchema),
-	gamePerformanceData: z.array(GamePerformanceDataSchema),
-	expertReview: ExpertReviewSchema,
-	validatedProposal: ValidatedProposalDataSchema,
+export const PriceQuoteSchema = z.object({
+	parts: z.array(
+		z.object({
+			name: z.string().describe("Component name"),
+			price: z.number().describe("Price in euros"),
+		}),
+	),
 });
-export type PageData = z.infer<typeof PageDataSchema>;
+export type PriceQuote = z.infer<typeof PriceQuoteSchema>;
+
+export const BudgetExtractionSchema = z.object({
+	budget: z.number().describe("Total budget in euros — if the user doesn't specify, estimate a reasonable amount based on the requested games and resolution"),
+});
+
+export type AgentEvent =
+	| {
+			type: "step";
+			step: {
+				icon: "check" | "cpu" | "alert" | "rotate";
+				title: string;
+				text: string;
+				badge?: { color: string; text: string };
+				lineVariant?: "solid";
+			};
+	  }
+	| {
+			type: "proposal";
+			data: {
+				partsList: { type: string; color: string; name: string; price: string }[];
+				totalPrice: string;
+				budgetPercentage: number;
+				budgetRemaining: string;
+			};
+	  }
+	| {
+			type: "performance";
+			games: { name: string; fps: string; value: number; color: string; fpsColor: string }[];
+	  }
+	| {
+			type: "review";
+			review: { sentiment: string; text: string };
+	  }
+	| { type: "complete" }
+	| { type: "error"; message: string };

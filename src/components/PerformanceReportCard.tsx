@@ -9,30 +9,48 @@ export interface ExpertReview {
 }
 
 export default function PerformanceReportCard({ games, expertReview }: { games: GamePerformanceData[]; expertReview: ExpertReview }) {
+	const hasPerformance = games.length > 0;
+	const hasReview = expertReview.text.length > 0;
+
 	return (
 		<Paper withBorder p="md" radius="md">
 			<SectionTitle mb="sm" icon={<IconDeviceGamepad2 size={20} color="teal" />}>
 				Performance Schatting
 			</SectionTitle>
-			<Text size="xs" c="dimmed" mb="md">
-				Geschat op basis van hardware-matching en recente benchmarks op 1440p (High settings).
-			</Text>
 
-			<Stack gap="xs">
-				{games.map((game, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: static list
-					<GamePerformanceBar key={index} {...game} />
-				))}
-			</Stack>
+			{hasPerformance ? (
+				<>
+					<Text size="xs" c="dimmed" mb="md">
+						Geschat op basis van hardware-matching en recente benchmarks.
+					</Text>
+					<Stack gap="xs">
+						{games.map((game, index) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: static list
+							<GamePerformanceBar key={index} {...game} />
+						))}
+					</Stack>
+				</>
+			) : (
+				<Text size="sm" c="dimmed" ta="center" py="md">
+					Nog geen performance data beschikbaar.
+				</Text>
+			)}
 
 			<Divider my="md" />
 
 			<SectionTitle order={4} size="h5" mb="xs" icon={<IconScale size={16} />}>
 				Expert Review Samenvatting
 			</SectionTitle>
-			<Alert variant="light" color="blue" title={`Expert Sentiment: ${expertReview.sentiment}`} icon={<IconAlertCircle size={16} />}>
-				<Text size="xs">{expertReview.text}</Text>
-			</Alert>
+
+			{hasReview ? (
+				<Alert variant="light" color="blue" title={`Expert Sentiment: ${expertReview.sentiment}`} icon={<IconAlertCircle size={16} />}>
+					<Text size="xs">{expertReview.text}</Text>
+				</Alert>
+			) : (
+				<Text size="sm" c="dimmed" ta="center" py="md">
+					Nog geen review analyse beschikbaar.
+				</Text>
+			)}
 		</Paper>
 	);
 }

@@ -1,4 +1,4 @@
-import { Badge, Paper, Text, Timeline } from "@mantine/core";
+import { Badge, Loader, Paper, Text, Timeline } from "@mantine/core";
 import { IconAlertCircle, IconCheck, IconCpu, IconRotateDot } from "@tabler/icons-react";
 import SectionTitle from "./SectionTitle";
 
@@ -17,12 +17,12 @@ const iconMap = {
 	rotate: IconRotateDot,
 };
 
-export default function AgentReasoningCard({ steps, activeStep }: { steps: TimelineStep[]; activeStep: number }) {
+export default function AgentReasoningCard({ steps, isRunning = false }: { steps: TimelineStep[]; isRunning?: boolean }) {
 	return (
 		<Paper withBorder p="md" radius="md">
-			<SectionTitle icon={<IconRotateDot size={20} color="purple" />}>Agent Redeneerproces</SectionTitle>
+			<SectionTitle icon={isRunning ? <Loader size={18} color="purple" /> : <IconRotateDot size={20} color="purple" />}>Agent Redeneerproces</SectionTitle>
 
-			<Timeline active={activeStep} bulletSize={24} lineWidth={2}>
+			<Timeline active={steps.length} bulletSize={24} lineWidth={2}>
 				{steps.map((step, index) => {
 					const IconComponent = iconMap[step.icon];
 					return (
