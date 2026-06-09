@@ -10,13 +10,13 @@
 		"format": "biome format --write"
 	},
 	"dependencies": {
-		"@mantine/core": "9.2.2",
-		"@mantine/hooks": "9.2.2",
+		"@mantine/core": "9.3.1",
+		"@mantine/hooks": "9.3.1",
 		"@tabler/icons-react": "^3.44.0",
-		"next": "16.2.6",
-		"openai": "^6.39.1",
-		"react": "19.2.6",
-		"react-dom": "19.2.6",
+		"next": "16.2.7",
+		"openai": "^6.42.0",
+		"react": "19.2.7",
+		"react-dom": "19.2.7",
 		"react-markdown": "^10.1.0",
 		"rehype-raw": "^7.0.0",
 		"remark-gfm": "^4.0.1",
@@ -25,6 +25,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.29.7",
 		"@biomejs/biome": "2.4.16",
+		"@opennextjs/cloudflare": "^1.19.11",
 		"@types/node": "^25",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
@@ -32,6 +33,7 @@
 		"babel-plugin-react-compiler": "1.0.0",
 		"postcss-preset-mantine": "1.18.0",
 		"postcss-simple-vars": "^7.0.1",
-		"typescript": "^6"
+		"typescript": "^6",
+		"wrangler": "^4.99.0"
 	}
 }

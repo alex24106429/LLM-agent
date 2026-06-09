@@ -3,10 +3,10 @@ import config from "../config";
 import type { HardwareSelection, PerformanceEstimates, PriceQuote, ReviewSummary } from "../schemas";
 import { BudgetExtractionSchema, HardwareSelectionSchema, PerformanceEstimatesSchema, PriceQuoteSchema, ReviewSummarySchema } from "../schemas/index";
 import { hardwareToSummaryText, structuredOutputFormat } from "./helpers";
-import { openai } from "./openai";
+import { getOpenAI } from "./openai";
 
 export async function extractBudget(prompt: string): Promise<number> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -28,7 +28,7 @@ export async function extractBudget(prompt: string): Promise<number> {
 }
 
 export async function selectCoreHardware(prompt: string): Promise<HardwareSelection> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -65,7 +65,7 @@ export async function selectCoreHardware(prompt: string): Promise<HardwareSelect
 }
 
 export async function selectCheaperHardware(budget: number, currentHw: HardwareSelection, overshoot: number): Promise<HardwareSelection> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -93,7 +93,7 @@ export async function selectCheaperHardware(budget: number, currentHw: HardwareS
 }
 
 export async function fixCompatibilityHw(currentHw: HardwareSelection, issues: string[]): Promise<HardwareSelection> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -117,7 +117,7 @@ export async function fixCompatibilityHw(currentHw: HardwareSelection, issues: s
 }
 
 export async function extractPricesFromSearch(hardware: HardwareSelection, searchResults: string): Promise<PriceQuote> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -145,7 +145,7 @@ export async function extractPricesFromSearch(hardware: HardwareSelection, searc
 }
 
 export async function estimatePerformance(hardware: HardwareSelection, userPrompt: string): Promise<PerformanceEstimates> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{
@@ -170,7 +170,7 @@ export async function estimatePerformance(hardware: HardwareSelection, userPromp
 }
 
 export async function analyzeReviews(hardware: HardwareSelection, searchResults: string): Promise<ReviewSummary> {
-	const response = await openai.chat.completions.create({
+	const response = await getOpenAI().chat.completions.create({
 		model: config.OPENAI_MODEL,
 		messages: [
 			{

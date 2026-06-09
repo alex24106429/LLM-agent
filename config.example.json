@@ -1,6 +1,0 @@
-{
-	"OPENAI_BASE_URL": "https://generativelanguage.googleapis.com/v1beta/openai/",
-	"OPENAI_MODEL": "gemini-3.5-flash",
-	"OPENAI_API_KEY": "...",
-	"BRAVE_API_KEY": ""
-}
