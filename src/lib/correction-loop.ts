@@ -1,5 +1,5 @@
 import type { AgentEvent, HardwareSelection, PriceQuote } from "../schemas";
-import searchWeb from "../tools/searchWeb";
+import searchMegekko from "../tools/searchMegekko";
 import { calculateTotalPrice, checkCompatibility, isWithinBudget } from "./compatibility";
 import { buildSearchQueries, formatPrice } from "./helpers";
 import { extractPricesFromSearch, fixCompatibilityHw, selectCheaperHardware } from "./llm-calls";
@@ -25,7 +25,12 @@ export async function runSelfCorrectionLoop(
 
 		try {
 			const searchQueries = buildSearchQueries(hardware);
-			const searchResultStr = await searchWeb.execute({ queries: searchQueries });
+
+			const searchPromises = searchQueries.map((query) => searchMegekko.execute({ query }));
+			const searchResults = await Promise.all(searchPromises);
+
+			const searchResultStr = searchResults.join("\n\n");
+
 			priceQuote = await extractPricesFromSearch(hardware, searchResultStr);
 		} catch (err) {
 			console.error("[Agent] Zoekopdracht mislukt, gebruik LLM-kennis voor prijzen:", err);

@@ -65,7 +65,7 @@ export async function selectCoreHardware(prompt: string, budget?: number): Promi
 			},
 		],
 		response_format: structuredOutputFormat("hardware_selection", HardwareSelectionSchema),
-		reasoning_effort: "high",
+		reasoning_effort: "medium",
 		temperature: 0.4,
 	});
 

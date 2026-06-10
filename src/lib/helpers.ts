@@ -88,13 +88,13 @@ export function buildGamePerformanceData(estimates: PerformanceEstimates) {
 
 export function buildSearchQueries(hardware: HardwareSelection): string[] {
 	return [
-		`${hardware.cpu.name} prijs kopen`,
-		`${hardware.gpu.name} prijs kopen`,
-		`${hardware.motherboard.name} prijs kopen`,
-		`${hardware.ram.name} prijs kopen`,
-		`${hardware.storage.name} prijs kopen`,
-		`${hardware.psu.name} prijs kopen`,
-		`${hardware.case.name} prijs kopen`,
-		`${hardware.cooler.name} prijs kopen`,
+		`${hardware.cpu.name}`,
+		`${hardware.gpu.name}`,
+		`${hardware.motherboard.name}`,
+		`${hardware.ram.name}`,
+		`${hardware.storage.name}`,
+		`${hardware.psu.name}`,
+		`${hardware.case.name}`,
+		`${hardware.cooler.name}`,
 	];
 }
