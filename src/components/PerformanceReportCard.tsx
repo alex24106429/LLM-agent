@@ -13,8 +13,8 @@ export default function PerformanceReportCard({ games, expertReview }: { games: 
 	const hasReview = expertReview.text.length > 0;
 
 	return (
-		<Paper withBorder p="md" radius="md">
-			<SectionTitle mb="sm" icon={<IconDeviceGamepad2 size={20} color="teal" />}>
+		<Paper withBorder>
+			<SectionTitle mb="sm" icon={<IconDeviceGamepad2 size={20}/>}>
 				Performance Schatting
 			</SectionTitle>
 
@@ -43,7 +43,7 @@ export default function PerformanceReportCard({ games, expertReview }: { games: 
 			</SectionTitle>
 
 			{hasReview ? (
-				<Alert variant="light" color="blue" title={`Expert Sentiment: ${expertReview.sentiment}`} icon={<IconAlertCircle size={16} />}>
+				<Alert variant="default" title={`Expert Sentiment: ${expertReview.sentiment}`}>
 					<Text size="xs">{expertReview.text}</Text>
 				</Alert>
 			) : (

@@ -12,8 +12,8 @@ export default function UserRequirementsCard({ onSubmit, isLoading = false }: Us
 	const [prompt, setPrompt] = useState("");
 
 	return (
-		<Paper withBorder p="md" radius="md">
-			<SectionTitle icon={<IconCoins size={20} color="gray" />}>Gebruikerswensen</SectionTitle>
+		<Paper withBorder>
+			<SectionTitle icon={<IconCoins size={20}/>}>Gebruikerswensen</SectionTitle>
 			<Stack gap="sm">
 				<Textarea
 					label="Doelstelling / Prompt"
@@ -23,7 +23,7 @@ export default function UserRequirementsCard({ onSubmit, isLoading = false }: Us
 					disabled={isLoading}
 					maxLength={250}
 				/>
-				<Button onClick={() => onSubmit(prompt)} loading={isLoading} disabled={!prompt.trim()}>
+				<Button onClick={() => onSubmit(prompt)} loading={isLoading} disabled={!prompt.trim()} variant="filled">
 					{isLoading ? "Agent Bezig..." : "Start Agent"}
 				</Button>
 			</Stack>

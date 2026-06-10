@@ -1,5 +1,6 @@
 "use client";
 
+import { theme, cssVariablesResolver } from '../theme';
 import { Alert, Container, Grid, MantineProvider, Stack, Text, Title } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { Anta } from "next/font/google";
@@ -133,7 +134,7 @@ export default function PCBuilderAgentUI() {
 	);
 
 	return (
-		<MantineProvider defaultColorScheme="auto">
+			<MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme="auto">
 			<Container size="xl" py="lg">
 				<Title className={antaFont.className} size={48}>
 					CHASSIS

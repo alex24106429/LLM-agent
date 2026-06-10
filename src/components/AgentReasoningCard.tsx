@@ -19,8 +19,8 @@ const iconMap = {
 
 export default function AgentReasoningCard({ steps, isRunning = false }: { steps: TimelineStep[]; isRunning?: boolean }) {
 	return (
-		<Paper withBorder p="md" radius="md">
-			<SectionTitle icon={isRunning ? <Loader size={18} color="purple" /> : <IconRotateDot size={20} color="purple" />}>Agent Redeneerproces</SectionTitle>
+		<Paper withBorder>
+			<SectionTitle icon={isRunning ? <Loader size={18}/> : <IconRotateDot size={20}/>}>Agent Redeneerproces</SectionTitle>
 
 			<Timeline active={steps.length} bulletSize={24} lineWidth={2}>
 				{steps.map((step, index) => {

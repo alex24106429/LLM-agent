@@ -14,9 +14,9 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 	// Loading state: show skeleton
 	if (isLoading && !data) {
 		return (
-			<Paper withBorder p="md" radius="md">
+			<Paper withBorder>
 				<Group justify="space-between" mb="xs">
-					<SectionTitle mb="0" icon={<Loader size={18} color="green" />}>
+					<SectionTitle mb="0" icon={<Loader size={18}/>}>
 						Gevalideerd Voorstel
 					</SectionTitle>
 				</Group>
@@ -30,9 +30,9 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 	// Empty state: no data yet
 	if (!data) {
 		return (
-			<Paper withBorder p="md" radius="md">
+			<Paper withBorder>
 				<Group justify="space-between" mb="xs">
-					<SectionTitle mb="0" icon={<IconCheck size={20} color="green" />}>
+					<SectionTitle mb="0" icon={<IconCheck size={20} />}>
 						Gevalideerd Voorstel
 					</SectionTitle>
 				</Group>
@@ -47,9 +47,9 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 	const isOverBudget = budgetRemaining.includes("tekort");
 
 	return (
-		<Paper withBorder p="md" radius="md">
+		<Paper withBorder>
 			<Group justify="space-between" mb="xs">
-				<SectionTitle mb="0" icon={<IconCheck size={20} color="green" />}>
+				<SectionTitle mb="0" icon={<IconCheck size={20} />}>
 					Gevalideerd Voorstel
 				</SectionTitle>
 				<Badge color={isOverBudget ? "red" : "green"}>{isOverBudget ? "Over Budget" : "Gevalideerd & Binnen Budget"}</Badge>
@@ -58,9 +58,9 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 			<Group mb="md" grow>
 				<div>
 					<Text size="xs" c="dimmed">
-						Totaal Prijs (Laagste Retailers)
+						Totaal Prijs
 					</Text>
-					<Text size="lg" fw={700}>
+					<Text size="xl" fw={400}>
 						{totalPrice}
 					</Text>
 				</div>
