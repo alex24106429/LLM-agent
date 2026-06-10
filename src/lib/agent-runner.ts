@@ -68,19 +68,17 @@ export async function runAgent(userPrompt: string, onEvent: (event: AgentEvent) 
 		},
 	});
 
-
 	logger.debug("Entering self-correction loop.");
 	const loopResult = await runSelfCorrectionLoop(hardware, budget, emit, stepCounter);
 	if (loopResult === null) {
 		logger.error("Self-correction loop did not return a result, proceeding with existing hardware and budget.");
-		return
-	};
+		return;
+	}
 	hardware = loopResult.hardware;
 	const finalPriceQuote = loopResult.priceQuote; // Retrieved directly from the loop
 
 	logger.info("Self-correction loop completed. Final hardware:", hardware, "Final price quote:", finalPriceQuote);
 	logger.info("Final price quote:", finalPriceQuote);
-
 
 	emit({
 		type: "step",
