@@ -1,8 +1,12 @@
 "use client";
 
-import { Alert, Container, Grid, Group, MantineProvider, Stack, Title } from "@mantine/core";
+import { Alert, Container, Grid, MantineProvider, Stack, Text, Title } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
+import { Anta } from "next/font/google";
 import { useCallback, useState } from "react";
+
+const antaFont = Anta({ weight: "400", display: "swap", subsets: ["latin"] });
+
 import AgentReasoningCard, { type TimelineStep } from "@/components/AgentReasoningCard";
 import type { GamePerformanceData } from "@/components/GamePerformanceBar";
 import PerformanceReportCard, { type ExpertReview } from "@/components/PerformanceReportCard";
@@ -131,9 +135,10 @@ export default function PCBuilderAgentUI() {
 	return (
 		<MantineProvider defaultColorScheme="auto">
 			<Container size="xl" py="lg">
-				<Group justify="space-between" mb="lg">
-					<Title>CHASSIS</Title>
-				</Group>
+				<Title className={antaFont.className} size={48}>
+					CHASSIS
+				</Title>
+				<Text mb={20}>Computer Hardware Agent for System Selection & Integration Service</Text>
 
 				{error && (
 					<Alert icon={<IconAlertCircle size="1rem" />} color="red" variant="light" mb="md" withCloseButton onClose={() => setError(null)}>
