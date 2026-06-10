@@ -12,6 +12,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="nl">
+			<meta name="color-scheme" content="light dark" />
 			<link rel="shortcut icon" href="/favicon.svg" />
 			<body>{children}</body>
 		</html>

@@ -1,6 +1,7 @@
 "use client";
 
-import { Container, Grid, Group, MantineProvider, Stack, Title } from "@mantine/core";
+import { Alert, Container, Grid, Group, MantineProvider, Stack, Title } from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
 import AgentReasoningCard, { type TimelineStep } from "@/components/AgentReasoningCard";
 import type { GamePerformanceData } from "@/components/GamePerformanceBar";
@@ -128,16 +129,16 @@ export default function PCBuilderAgentUI() {
 	);
 
 	return (
-		<MantineProvider>
+		<MantineProvider defaultColorScheme="auto">
 			<Container size="xl" py="lg">
 				<Group justify="space-between" mb="lg">
 					<Title>CHASSIS</Title>
 				</Group>
 
 				{error && (
-					<div style={{ background: "#fff5f5", border: "1px solid #ff8787", padding: "12px 16px", borderRadius: "8px", marginBottom: "16px", color: "#c92a2a", fontSize: "14px" }}>
+					<Alert icon={<IconAlertCircle size="1rem" />} color="red" variant="light" mb="md" withCloseButton onClose={() => setError(null)}>
 						{error}
-					</div>
+					</Alert>
 				)}
 
 				<Grid>
