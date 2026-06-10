@@ -21,6 +21,7 @@ export default function UserRequirementsCard({ onSubmit, isLoading = false }: Us
 					value={prompt}
 					onChange={(e) => setPrompt(e.currentTarget.value)}
 					disabled={isLoading}
+					maxLength={250}
 				/>
 				<Button onClick={() => onSubmit(prompt)} loading={isLoading} disabled={!prompt.trim()}>
 					{isLoading ? "Agent Bezig..." : "Start Agent"}
