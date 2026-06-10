@@ -16,7 +16,7 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 		return (
 			<Paper withBorder>
 				<Group justify="space-between" mb="xs">
-					<SectionTitle mb="0" icon={<Loader size={18}/>}>
+					<SectionTitle mb="0" icon={<Loader size={18} />}>
 						Gevalideerd Voorstel
 					</SectionTitle>
 				</Group>
@@ -75,7 +75,7 @@ export default function ValidatedProposalCard({ data, isLoading = false }: { dat
 				</div>
 			</Group>
 
-			<Table verticalSpacing="xs" striped>
+			<Table verticalSpacing="xs" striped highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>
 						<Table.Th>Type</Table.Th>

@@ -13,7 +13,7 @@ export default function UserRequirementsCard({ onSubmit, isLoading = false }: Us
 
 	return (
 		<Paper withBorder>
-			<SectionTitle icon={<IconCoins size={20}/>}>Gebruikerswensen</SectionTitle>
+			<SectionTitle icon={<IconCoins size={20} />}>Gebruikerswensen</SectionTitle>
 			<Stack gap="sm">
 				<Textarea
 					label="Doelstelling / Prompt"

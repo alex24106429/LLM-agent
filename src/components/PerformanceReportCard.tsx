@@ -1,5 +1,5 @@
 import { Alert, Divider, Paper, Stack, Text } from "@mantine/core";
-import { IconAlertCircle, IconDeviceGamepad2, IconScale } from "@tabler/icons-react";
+import { IconDeviceGamepad2, IconScale } from "@tabler/icons-react";
 import GamePerformanceBar, { type GamePerformanceData } from "./GamePerformanceBar";
 import SectionTitle from "./SectionTitle";
 
@@ -14,7 +14,7 @@ export default function PerformanceReportCard({ games, expertReview }: { games: 
 
 	return (
 		<Paper withBorder>
-			<SectionTitle mb="sm" icon={<IconDeviceGamepad2 size={20}/>}>
+			<SectionTitle mb="sm" icon={<IconDeviceGamepad2 size={20} />}>
 				Performance Schatting
 			</SectionTitle>
 

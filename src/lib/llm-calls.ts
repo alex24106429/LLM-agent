@@ -154,8 +154,8 @@ export async function extractPricesFromSearch(hardware: HardwareSelection, searc
 			{
 				role: "system",
 				content:
-					"Je bent een prijsanalist. Uit de volgende zoekresultaten, extraheer je de laagste prijs voor elk PC-onderdeel. " +
-					"Als je geen prijs voor een onderdeel kunt vinden, schat dan een realistische marktprijs op basis van je kennis. " +
+					"Je bent een prijsanalist. Uit de volgende zoekresultaten, extraheer je de laagste prijs EN de bijbehorende aankoop link (URL) voor elk PC-onderdeel. " +
+					"Als je geen prijs of URL voor een onderdeel kunt vinden, schat dan een realistische marktprijs en gebruik null voor de URL. " +
 					`Datum: ${new Date().toString()}\n` +
 					"Geef voor elk onderdeel een aparte prijsopgave.\n" +
 					resources,

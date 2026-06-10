@@ -68,7 +68,7 @@ function formatResultsForLLM(query: string, results: MegekkoSearchResult): strin
 		markdown += `**Found Products:**\n`;
 		for (const p of results.products) {
 			const priceStr = p.price ? ` - **${p.price}**` : "";
-			markdown += `- ${p.title}${priceStr}\n`;
+			markdown += `- [${p.title}](${p.url})${priceStr}\n`;
 		}
 		markdown += `\n`;
 	}

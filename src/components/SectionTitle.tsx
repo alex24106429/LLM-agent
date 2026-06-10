@@ -10,7 +10,7 @@ export default function SectionTitle({ icon, children, mb = "md", order = 3, siz
 				display: "flex",
 				alignItems: "center",
 				gap: "8px",
-				fontWeight: 400
+				fontWeight: 400,
 			}}
 		>
 			{icon} {children}

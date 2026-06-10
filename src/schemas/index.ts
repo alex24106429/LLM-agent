@@ -47,6 +47,7 @@ export const PriceQuoteSchema = z.object({
 		z.object({
 			name: z.string().describe("Component name"),
 			price: z.number().describe("Price in euros"),
+			url: z.string().nullable().describe("Purchase URL if available in the search results"),
 		}),
 	),
 });
@@ -70,7 +71,7 @@ export type AgentEvent =
 	| {
 			type: "proposal";
 			data: {
-				partsList: { type: string; color: string; name: string; price: string }[];
+				partsList: { type: string; color: string; name: string; price: string; url: string | null }[];
 				totalPrice: string;
 				budgetPercentage: number;
 				budgetRemaining: string;

@@ -62,6 +62,7 @@ export function buildValidatedProposal(hardware: HardwareSelection, priceQuote: 
 			color: config.color,
 			name: p.name,
 			price: formatPrice(p.price),
+			url: p.url ?? null,
 		};
 	});
 
